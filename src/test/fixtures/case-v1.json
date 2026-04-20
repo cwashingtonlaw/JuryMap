@@ -1,0 +1,17 @@
+{
+  "id": "fixture-v1",
+  "schemaVersion": 1,
+  "meta": {
+    "name": "Fixture case",
+    "targetJurors": 12,
+    "targetAlternates": 2,
+    "peremptoryBudget": { "defense": 12, "state": 12 }
+  },
+  "mode": "questioning",
+  "currentPanelIndex": 0,
+  "panels": [],
+  "seatedJurorOrder": [],
+  "archived": false,
+  "createdAt": "2026-04-20T00:00:00.000Z",
+  "updatedAt": "2026-04-20T00:00:00.000Z"
+}
