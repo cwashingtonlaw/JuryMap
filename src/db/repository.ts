@@ -3,6 +3,8 @@ import { newId } from '../lib/id';
 import { CURRENT_SCHEMA_VERSION } from '../types/schema';
 import { migrate } from './migrations';
 import type { Case, CaseIndexRow, Panel, PeremptoryBudget } from '../types/case';
+import type { VenireRow } from '../lib/venire-import';
+import { makeEmptyJuror } from '../lib/panel';
 
 export interface CreateCaseInput {
   name: string;
@@ -97,4 +99,27 @@ export async function deleteCase(id: string): Promise<void> {
     await db.cases.delete(id);
     await db.caseBlobs.delete(id);
   });
+}
+
+export async function populateFirstPanelFromVenire(
+  caseId: string,
+  rows: VenireRow[]
+): Promise<void> {
+  const c = await getCase(caseId);
+  if (!c) throw new Error(`Case ${caseId} not found`);
+  const panel = c.panels[0];
+  if (!panel) throw new Error(`Case has no initial panel`);
+  const limited = rows.slice(0, 21);
+  panel.jurors = limited.map((row, i) => {
+    const j = makeEmptyJuror(panel.id, i + 1);
+    j.identity = {
+      name: row.name,
+      jurorNumber: row.jurorNumber,
+      age: row.age,
+      address: row.address,
+      zip: row.zip,
+    };
+    return j;
+  });
+  await saveCase(c);
 }

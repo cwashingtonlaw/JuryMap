@@ -1,7 +1,8 @@
 import { type FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createCase } from '../db/repository';
+import { createCase, populateFirstPanelFromVenire } from '../db/repository';
 import { DEFAULT_PEREMPTORY_PRESETS } from '../types/case';
+import { parseVenire } from '../lib/venire-import';
 
 type PresetKey = keyof typeof DEFAULT_PEREMPTORY_PRESETS | 'custom';
 
@@ -18,6 +19,8 @@ export default function CaseSetup() {
   const [defensePer, setDefensePer] = useState(12);
   const [statePer, setStatePer] = useState(12);
   const [error, setError] = useState<string | null>(null);
+  const [venireText, setVenireText] = useState('');
+  const [venireFeedback, setVenireFeedback] = useState<string | null>(null);
 
   function onPresetChange(next: PresetKey) {
     setPreset(next);
@@ -31,6 +34,7 @@ export default function CaseSetup() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setVenireFeedback(null);
     if (!name.trim()) {
       setError('Name is required.');
       return;
@@ -45,6 +49,16 @@ export default function CaseSetup() {
       targetAlternates,
       peremptoryBudget: { defense: defensePer, state: statePer },
     });
+    if (venireText.trim()) {
+      const { rows, errors } = parseVenire(venireText);
+      if (errors.length) {
+        setVenireFeedback(
+          `Venire import had ${errors.length} issue(s): ${errors[0]}`
+        );
+        return;
+      }
+      await populateFirstPanelFromVenire(c.id, rows);
+    }
     nav(`/cases/${c.id}/questioning`);
   }
 
@@ -176,6 +190,28 @@ export default function CaseSetup() {
               />
             </label>
           </div>
+        </fieldset>
+
+        <fieldset className="grid gap-3 border border-slate-200 rounded-md p-4">
+          <legend className="text-sm font-medium px-1">
+            Venire list (optional)
+          </legend>
+          <p className="text-xs text-slate-500">
+            Paste CSV (with headers including <code>name</code>) or a JSON array.
+            First 21 rows will be seated in the initial panel.
+          </p>
+          <textarea
+            rows={6}
+            className="rounded-md border border-slate-300 px-3 py-2 font-mono text-sm"
+            value={venireText}
+            onChange={(e) => setVenireText(e.target.value)}
+            placeholder={`name,juror_number\nAlice Jones,101\nBob Smith,102`}
+          />
+          {venireFeedback && (
+            <div role="alert" className="text-sm text-amber-700">
+              {venireFeedback}
+            </div>
+          )}
         </fieldset>
 
         {error && (
