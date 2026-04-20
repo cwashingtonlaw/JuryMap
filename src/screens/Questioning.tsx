@@ -3,6 +3,10 @@ import { useParams } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
 import SeatGrid from '../components/SeatGrid';
 import JurorDrawer from '../components/JurorDrawer';
+import DisqualifyModal, {
+  type DisqualifyKind,
+} from '../components/DisqualifyModal';
+import { replaceInSeat, slideLeft } from '../lib/panel';
 
 export default function Questioning() {
   const { caseId } = useParams();
@@ -11,6 +15,7 @@ export default function Questioning() {
   const updateCase = useCaseStore((s) => s.updateCase);
 
   const [openSeat, setOpenSeat] = useState<number | null>(null);
+  const [disqualifying, setDisqualifying] = useState<string | null>(null);
 
   useEffect(() => {
     if (caseId) loadCase(caseId).catch(console.error);
@@ -23,6 +28,20 @@ export default function Questioning() {
     openSeat != null
       ? panel.jurors.find((j) => j.seatIndex === openSeat)
       : undefined;
+
+  async function disqualify(kind: DisqualifyKind, reason: string) {
+    const jurorId = disqualifying;
+    if (!jurorId) return;
+    await updateCase((draft) => {
+      const idx = draft.currentPanelIndex;
+      const panel = draft.panels[idx];
+      const fn = kind === 'replace-in-seat' ? replaceInSeat : slideLeft;
+      const result = fn(panel, jurorId, reason);
+      draft.panels[idx] = result.panel;
+    });
+    setDisqualifying(null);
+    setOpenSeat(null);
+  }
 
   async function patchJuror(mutator: (draft: any) => void) {
     const jurorId = selectedJuror?.id;
@@ -57,6 +76,14 @@ export default function Questioning() {
           juror={selectedJuror}
           onClose={() => setOpenSeat(null)}
           onChange={patchJuror}
+          onDisqualify={() => setDisqualifying(selectedJuror.id)}
+        />
+      )}
+      {disqualifying && selectedJuror && (
+        <DisqualifyModal
+          jurorName={selectedJuror.identity.name}
+          onCancel={() => setDisqualifying(null)}
+          onConfirm={disqualify}
         />
       )}
     </div>
