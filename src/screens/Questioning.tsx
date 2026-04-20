@@ -7,6 +7,7 @@ import DisqualifyModal, {
   type DisqualifyKind,
 } from '../components/DisqualifyModal';
 import { replaceInSeat, slideLeft } from '../lib/panel';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 
 export default function Questioning() {
   const { caseId } = useParams();
@@ -21,13 +22,73 @@ export default function Questioning() {
     if (caseId) loadCase(caseId).catch(console.error);
   }, [caseId, loadCase]);
 
-  if (!activeCase) return <div className="p-8 text-slate-500">Loading…</div>;
-
-  const panel = activeCase.panels[activeCase.currentPanelIndex];
+  const panel = activeCase?.panels[activeCase.currentPanelIndex];
   const selectedJuror =
-    openSeat != null
+    openSeat != null && panel
       ? panel.jurors.find((j) => j.seatIndex === openSeat)
       : undefined;
+
+  async function patchJuror(mutator: (draft: any) => void) {
+    const jurorId = selectedJuror?.id;
+    if (!jurorId) return;
+    await updateCase((draft) => {
+      const p = draft.panels[draft.currentPanelIndex];
+      const j = p.jurors.find((x: any) => x.id === jurorId);
+      if (j) mutator(j);
+    });
+  }
+
+  useKeyboardShortcuts(
+    {
+      ArrowRight: () => {
+        if (openSeat == null) setOpenSeat(1);
+        else setOpenSeat(Math.min(21, openSeat + 1));
+      },
+      ArrowLeft: () => {
+        if (openSeat == null) return;
+        setOpenSeat(Math.max(1, openSeat - 1));
+      },
+      ArrowDown: () => {
+        if (openSeat == null) setOpenSeat(1);
+        else setOpenSeat(Math.min(21, openSeat + 7));
+      },
+      ArrowUp: () => {
+        if (openSeat == null) return;
+        setOpenSeat(Math.max(1, openSeat - 7));
+      },
+    },
+    true
+  );
+
+  useKeyboardShortcuts(
+    {
+      '1': () => selectedJuror && patchJuror((d) => { d.lean = -3; }),
+      '2': () => selectedJuror && patchJuror((d) => { d.lean = -2; }),
+      '3': () => selectedJuror && patchJuror((d) => { d.lean = -1; }),
+      '4': () => selectedJuror && patchJuror((d) => { d.lean = 0; }),
+      '5': () => selectedJuror && patchJuror((d) => { d.lean = 1; }),
+      '6': () => selectedJuror && patchJuror((d) => { d.lean = 2; }),
+      '7': () => selectedJuror && patchJuror((d) => { d.lean = 3; }),
+      v: () =>
+        selectedJuror &&
+        patchJuror((d) => {
+          d.flags.crimeVictim.value = !d.flags.crimeVictim.value;
+        }),
+      l: () =>
+        selectedJuror &&
+        patchJuror((d) => {
+          d.flags.leFamily.value = !d.flags.leFamily.value;
+        }),
+      p: () =>
+        selectedJuror &&
+        patchJuror((d) => {
+          d.flags.priorJury.value = !d.flags.priorJury.value;
+        }),
+    },
+    selectedJuror != null
+  );
+
+  if (!activeCase || !panel) return <div className="p-8 text-slate-500">Loading…</div>;
 
   async function disqualify(kind: DisqualifyKind, reason: string) {
     const jurorId = disqualifying;
@@ -41,16 +102,6 @@ export default function Questioning() {
     });
     setDisqualifying(null);
     setOpenSeat(null);
-  }
-
-  async function patchJuror(mutator: (draft: any) => void) {
-    const jurorId = selectedJuror?.id;
-    if (!jurorId) return;
-    await updateCase((draft) => {
-      const p = draft.panels[draft.currentPanelIndex];
-      const j = p.jurors.find((x) => x.id === jurorId);
-      if (j) mutator(j);
-    });
   }
 
   return (
