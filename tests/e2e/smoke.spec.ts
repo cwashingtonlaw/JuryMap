@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
-test('app shell renders with Cases route', async ({ page }) => {
+test('redirects from / to /cases and shows empty state', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveURL(/\/cases$/);
-  await expect(page.getByRole('heading', { name: /^cases$/i })).toBeVisible();
+  await expect(page.getByText(/no cases yet/i)).toBeVisible();
 });
