@@ -113,6 +113,18 @@ export default function Questioning() {
             Panel {panel.index} — Questioning
           </div>
         </div>
+        <button
+          type="button"
+          disabled={!canFinishQuestioning(panel)}
+          onClick={() =>
+            alert(
+              'Decision mode ships in Milestone B. All questioning notes are saved.'
+            )
+          }
+          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:bg-slate-300"
+        >
+          Finish Questioning → Decision
+        </button>
       </header>
 
       <div className="p-8">
@@ -139,4 +151,12 @@ export default function Questioning() {
       )}
     </div>
   );
+}
+
+function canFinishQuestioning(panel: any): boolean {
+  // A panel is ready when all 21 seats are filled and every seated juror has a name.
+  const seated = panel.jurors.filter(
+    (j: any) => j.seatIndex != null && (j.identity?.name ?? '').trim()
+  );
+  return seated.length === 21;
 }
