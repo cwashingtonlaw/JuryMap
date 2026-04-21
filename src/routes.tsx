@@ -9,6 +9,7 @@ import PdfPreview from './screens/PdfPreview';
 import BatsonAnalysis from './screens/BatsonAnalysis';
 import InstallOnboarding from './screens/InstallOnboarding';
 import Help from './screens/Help';
+import AnalogyReport from './screens/AnalogyReport';
 
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/cases" replace /> },
@@ -20,6 +21,7 @@ export const router = createBrowserRouter([
   { path: '/cases/:caseId/tracker', element: <PeremptoryTrackerScreen /> },
   { path: '/cases/:caseId/report', element: <PdfPreview /> },
   { path: '/cases/:caseId/batson', element: <BatsonAnalysis /> },
+  { path: '/cases/:caseId/analogies', element: <AnalogyReport /> },
   { path: '/onboarding', element: <InstallOnboarding /> },
   { path: '/help', element: <Help /> },
 ]);

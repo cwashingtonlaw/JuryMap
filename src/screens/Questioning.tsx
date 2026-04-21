@@ -133,22 +133,30 @@ export default function Questioning() {
             Panel {panel.index} — Questioning
           </div>
         </div>
-        <button
-          type="button"
-          disabled={!canFinishQuestioning(panel)}
-          onClick={async () => {
-            if (!caseId) return;
-            try {
-              await advanceToDecision(caseId);
-              nav(`/cases/${caseId}/decision`);
-            } catch (e) {
-              alert((e as Error).message);
-            }
-          }}
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:bg-slate-300"
-        >
-          Finish Questioning → Decision
-        </button>
+        <div className="flex gap-3 items-center">
+          <Link
+            to={`/cases/${caseId}/analogies`}
+            className="text-sm text-slate-600 hover:text-slate-900"
+          >
+            Analogy report
+          </Link>
+          <button
+            type="button"
+            disabled={!canFinishQuestioning(panel)}
+            onClick={async () => {
+              if (!caseId) return;
+              try {
+                await advanceToDecision(caseId);
+                nav(`/cases/${caseId}/decision`);
+              } catch (e) {
+                alert((e as Error).message);
+              }
+            }}
+            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:bg-slate-300"
+          >
+            Finish Questioning → Decision
+          </button>
+        </div>
       </header>
 
       <div className="p-8">
