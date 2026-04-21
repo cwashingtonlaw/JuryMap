@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
 import SeatGrid from '../components/SeatGrid';
@@ -66,6 +66,12 @@ export default function Decision() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Link
+            to={`/cases/${caseId}/batson`}
+            className="text-sm text-slate-600 hover:text-slate-900 self-center mr-2"
+          >
+            Batson Analysis
+          </Link>
           <button
             type="button"
             disabled={panel.jurors.some(

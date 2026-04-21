@@ -6,6 +6,7 @@ import Decision from './screens/Decision';
 import SeatedJury from './screens/SeatedJury';
 import PeremptoryTrackerScreen from './screens/PeremptoryTrackerScreen';
 import PdfPreview from './screens/PdfPreview';
+import BatsonAnalysis from './screens/BatsonAnalysis';
 
 export const router = createBrowserRouter([
   { path: '/', element: <Navigate to="/cases" replace /> },
@@ -16,4 +17,5 @@ export const router = createBrowserRouter([
   { path: '/cases/:caseId/seated', element: <SeatedJury /> },
   { path: '/cases/:caseId/tracker', element: <PeremptoryTrackerScreen /> },
   { path: '/cases/:caseId/report', element: <PdfPreview /> },
+  { path: '/cases/:caseId/batson', element: <BatsonAnalysis /> },
 ]);
