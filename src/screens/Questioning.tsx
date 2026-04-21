@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
+import { advanceToDecision } from '../db/repository';
 import SeatGrid from '../components/SeatGrid';
 import JurorDrawer from '../components/JurorDrawer';
 import DisqualifyModal, {
@@ -14,6 +16,8 @@ export default function Questioning() {
   const activeCase = useCaseStore((s) => s.activeCase);
   const loadCase = useCaseStore((s) => s.loadCase);
   const updateCase = useCaseStore((s) => s.updateCase);
+
+  const nav = useNavigate();
 
   const [openSeat, setOpenSeat] = useState<number | null>(null);
   const [disqualifying, setDisqualifying] = useState<string | null>(null);
@@ -116,11 +120,15 @@ export default function Questioning() {
         <button
           type="button"
           disabled={!canFinishQuestioning(panel)}
-          onClick={() =>
-            alert(
-              'Decision mode ships in Milestone B. All questioning notes are saved.'
-            )
-          }
+          onClick={async () => {
+            if (!caseId) return;
+            try {
+              await advanceToDecision(caseId);
+              nav(`/cases/${caseId}/decision`);
+            } catch (e) {
+              alert((e as Error).message);
+            }
+          }}
           className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:bg-slate-300"
         >
           Finish Questioning → Decision

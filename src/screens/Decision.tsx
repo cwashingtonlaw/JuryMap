@@ -1,14 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
 import SeatGrid from '../components/SeatGrid';
 import StrikePicker, { type StrikeChoice } from '../components/StrikePicker';
-import { markJurorStrike } from '../db/repository';
+import {
+  markJurorStrike,
+  finishDecisionsForPanel,
+  startNextPanel,
+  getCase,
+} from '../db/repository';
 
 export default function Decision() {
   const { caseId } = useParams();
   const activeCase = useCaseStore((s) => s.activeCase);
   const loadCase = useCaseStore((s) => s.loadCase);
+
+  const nav = useNavigate();
 
   const [openJurorId, setOpenJurorId] = useState<string | null>(null);
 
@@ -32,10 +40,50 @@ export default function Decision() {
 
   return (
     <div className="min-h-full">
-      <header className="border-b border-slate-200 bg-white px-8 py-4">
-        <h1 className="text-xl font-semibold">{activeCase.meta.name}</h1>
-        <div className="text-xs text-slate-500">
-          Panel {panel.index} — Decision
+      <header className="border-b border-slate-200 bg-white px-8 py-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">{activeCase.meta.name}</h1>
+          <div className="text-xs text-slate-500">
+            Panel {panel.index} — Decision
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            disabled={panel.jurors.some(
+              (j) => j.status === 'active' && j.seatIndex != null
+            )}
+            onClick={async () => {
+              if (!caseId) return;
+              try {
+                await finishDecisionsForPanel(caseId);
+                const fresh = await getCase(caseId);
+                if (fresh?.mode === 'seated') {
+                  nav(`/cases/${caseId}/seated`);
+                }
+                await loadCase(caseId);
+              } catch (e) {
+                alert((e as Error).message);
+              }
+            }}
+            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:bg-slate-300"
+          >
+            Finish Decisions
+          </button>
+          {panel.status === 'decided' && (
+            <button
+              type="button"
+              onClick={async () => {
+                if (!caseId) return;
+                await startNextPanel(caseId);
+                await loadCase(caseId);
+                nav(`/cases/${caseId}/questioning`);
+              }}
+              className="rounded-md bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800"
+            >
+              Start Next Panel
+            </button>
+          )}
         </div>
       </header>
 
