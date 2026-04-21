@@ -5,6 +5,7 @@ import BatsonCrossTab from '../components/BatsonCrossTab';
 import BatsonStrikeLog from '../components/BatsonStrikeLog';
 import ComparatorList from '../components/ComparatorList';
 import BatsonPatternFlagsComponent from '../components/BatsonPatternFlags';
+import { generateBatsonMotionHtml } from '../lib/batson-motion';
 
 export default function BatsonAnalysis() {
   const { caseId } = useParams();
@@ -19,8 +20,27 @@ export default function BatsonAnalysis() {
   if (!activeCase) return <div className="p-8 text-slate-500">Loading…</div>;
 
   function exportMotion() {
-    // Wired in Task 5 — for now just a no-op stub.
-    console.log('Export motion draft — implemented in Task 5');
+    if (!activeCase) return;
+    const html = generateBatsonMotionHtml(activeCase, { movant: 'defense' });
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    // Open in a new tab; user can print/save as PDF or Word from the browser.
+    const win = window.open(url, '_blank', 'noopener');
+    if (!win) {
+      // Fallback: trigger a download
+      const a = document.createElement('a');
+      a.href = url;
+      a.download =
+        (activeCase.meta.name || 'case')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '') + '-batson-motion.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+    // Revoke later so the new tab has time to load
+    setTimeout(() => URL.revokeObjectURL(url), 30_000);
   }
 
   return (
