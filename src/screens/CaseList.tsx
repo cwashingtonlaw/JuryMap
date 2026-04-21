@@ -49,7 +49,13 @@ export default function CaseList() {
     <div className="min-h-full">
       <header className="border-b border-slate-200 bg-white px-8 py-4 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Cases</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <Link
+            to="/help"
+            className="text-sm text-slate-600 hover:text-slate-900 mr-1"
+          >
+            Help
+          </Link>
           <button
             type="button"
             onClick={onOpenFile}
