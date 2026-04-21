@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
 import { advanceToDecision } from '../db/repository';
 import SeatGrid from '../components/SeatGrid';

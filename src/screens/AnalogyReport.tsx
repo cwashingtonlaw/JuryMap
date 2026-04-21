@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
-import { ANALOGIES, analogyById } from '../content/analogies';
+import { ANALOGIES } from '../content/analogies';
 import type { Juror } from '../types/case';
 
 // Cross-juror matrix of analogy responses for the whole case.
