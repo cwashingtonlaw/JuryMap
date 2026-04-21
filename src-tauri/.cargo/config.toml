@@ -1,0 +1,4 @@
+# Keep Rust build artifacts outside iCloud Drive so iCloud doesn't try to sync
+# hundreds of thousands of intermediate compilation files.
+[build]
+target-dir = "/Users/greatelephant82/.cache/jury-selection/target"

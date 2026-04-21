@@ -35,3 +35,7 @@ test-results/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Tauri build output (kept outside iCloud via src-tauri/.cargo/config.toml)
+src-tauri/target/
+src-tauri/gen/schemas/
