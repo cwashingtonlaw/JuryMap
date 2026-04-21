@@ -1,4 +1,4 @@
-import type { Juror } from '../types/case';
+import type { Juror, JurorStatus } from '../types/case';
 
 interface Props {
   seat: number;
@@ -16,7 +16,38 @@ const LEAN_COLOR: Record<number, string> = {
   3: 'border-l-emerald-700',
 };
 
+const STATUS_BADGE: Partial<Record<JurorStatus, { label: string; klass: string }>> = {
+  kept: { label: 'KEEP', klass: 'bg-emerald-100 text-emerald-800' },
+  'struck-peremptory-defense': {
+    label: 'PEREMPT — D',
+    klass: 'bg-red-100 text-red-800',
+  },
+  'struck-peremptory-state': {
+    label: 'PEREMPT — S',
+    klass: 'bg-red-100 text-red-800',
+  },
+  'struck-cause-defense': {
+    label: 'CAUSE — D',
+    klass: 'bg-amber-100 text-amber-800',
+  },
+  'struck-cause-state': {
+    label: 'CAUSE — S',
+    klass: 'bg-amber-100 text-amber-800',
+  },
+  'excused-by-court': {
+    label: 'EXCUSED',
+    klass: 'bg-slate-200 text-slate-700',
+  },
+  disqualified: {
+    label: 'DISQ',
+    klass: 'bg-slate-200 text-slate-700',
+  },
+};
+
 export default function SeatCard({ seat, juror, onClick }: Props) {
+  const badge = juror ? STATUS_BADGE[juror.status] : undefined;
+  const dimmed = juror && juror.status !== 'active' && juror.status !== 'kept';
+
   return (
     <button
       type="button"
@@ -25,7 +56,8 @@ export default function SeatCard({ seat, juror, onClick }: Props) {
       className={
         'text-left rounded-md bg-[var(--card-paper)] border border-[var(--card-rule)] ' +
         'p-2 min-h-32 border-l-4 ' +
-        (juror ? LEAN_COLOR[juror.lean] : 'border-l-slate-200')
+        (juror ? LEAN_COLOR[juror.lean] : 'border-l-slate-200') +
+        (dimmed ? ' opacity-60' : '')
       }
     >
       <div className="text-[10px] text-slate-500 flex justify-between">
@@ -44,10 +76,20 @@ export default function SeatCard({ seat, juror, onClick }: Props) {
           {juror.employment.jobTitle}
         </div>
       )}
-      <div className="text-[10px] uppercase tracking-wider text-slate-500 mt-2">
+      <div className="text-[10px] uppercase tracking-wider text-slate-500 mt-2 flex gap-1 items-center">
         {juror?.demographics.maritalStatus &&
           juror.demographics.maritalStatus !== 'unknown' &&
           juror.demographics.maritalStatus}
+        {badge && (
+          <span
+            className={
+              'ml-auto px-1.5 py-0.5 rounded text-[9px] font-semibold ' +
+              badge.klass
+            }
+          >
+            {badge.label}
+          </span>
+        )}
       </div>
     </button>
   );
