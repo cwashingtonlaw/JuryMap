@@ -52,6 +52,26 @@ describe('Questioning', () => {
     expect(slots.length).toBe(21);
   });
 
+  it('clicking an empty seat opens an editable drawer (creates the juror on demand)', async () => {
+    const c = await createCase({ name: 'WalkUp' });
+    renderAt(c.id);
+    const user = userEvent.setup();
+
+    // No venire imported — panel starts empty. Click seat 5.
+    await user.click(await screen.findByTestId('seat-5'));
+
+    // Drawer opens with an empty Name input the user can type into
+    const nameInput = (await screen.findByPlaceholderText(
+      /^name$/i
+    )) as HTMLInputElement;
+    expect(nameInput).toBeInTheDocument();
+    expect(nameInput.value).toBe('');
+    expect(nameInput.disabled).toBe(false);
+
+    // The "Disqualify juror…" affordance is also present (confirms we have a seated juror)
+    expect(screen.getByText(/disqualify juror/i)).toBeInTheDocument();
+  });
+
   it('replace-in-seat moves the juror out and opens the seat for a new one', async () => {
     const c = await withCase();
     renderAt(c.id);

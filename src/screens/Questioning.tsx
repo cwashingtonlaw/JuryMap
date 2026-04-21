@@ -8,7 +8,7 @@ import JurorDrawer from '../components/JurorDrawer';
 import DisqualifyModal, {
   type DisqualifyKind,
 } from '../components/DisqualifyModal';
-import { replaceInSeat, slideLeft } from '../lib/panel';
+import { replaceInSeat, slideLeft, makeEmptyJuror } from '../lib/panel';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { serializeCase } from '../lib/juryfile';
 import { saveJuryFile } from '../lib/files';
@@ -154,7 +154,17 @@ export default function Questioning() {
       <div className="p-8">
         <SeatGrid
           jurors={panel.jurors}
-          onSeatClick={(s) => setOpenSeat(s)}
+          onSeatClick={async (s) => {
+            const existing = panel.jurors.find((j) => j.seatIndex === s);
+            if (!existing) {
+              // Create a fresh juror at this seat so the drawer has something to edit.
+              await updateCase((draft) => {
+                const p = draft.panels[draft.currentPanelIndex];
+                p.jurors.push(makeEmptyJuror(p.id, s));
+              });
+            }
+            setOpenSeat(s);
+          }}
         />
       </div>
 
