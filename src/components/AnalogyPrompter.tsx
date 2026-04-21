@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { analogyById, type AnalogyResponse } from '../content/analogies';
-import type { Juror, ReactionEntry } from '../types/case';
+import { analogyById } from '../content/analogies';
+import type { AnalogyResponse, Juror, ReactionEntry } from '../types/case';
 
 interface Props {
   analogyId: string;
