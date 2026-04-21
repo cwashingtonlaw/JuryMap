@@ -223,3 +223,21 @@ export function seatedJurors(c: Case): Juror[] {
     p.jurors.filter((j) => j.status === 'kept')
   );
 }
+
+export async function reorderSeatedJurors(
+  caseId: string,
+  newOrder: string[]
+): Promise<void> {
+  const c = await getCase(caseId);
+  if (!c) throw new Error(`Case ${caseId} not found`);
+  const kept = new Set(
+    c.panels.flatMap((p) =>
+      p.jurors.filter((j) => j.status === 'kept').map((j) => j.id)
+    )
+  );
+  if (newOrder.length !== kept.size || newOrder.some((id) => !kept.has(id))) {
+    throw new Error('Order must contain every kept juror id exactly once');
+  }
+  c.seatedJurorOrder = newOrder;
+  await saveCase(c);
+}
