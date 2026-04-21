@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import SeatCard from './SeatCard';
 import type { Juror } from '../types/case';
 
@@ -8,6 +9,7 @@ interface Props {
   layout?: 'rows' | 'snake';       // default 'rows'
   columns?: number;                // override columns (optional)
   showStrikePriority?: boolean;    // Decision mode renders the priority ring
+  onSwap?: (fromSeat: number, toSeat: number) => void; // enable drag-to-rearrange
 }
 
 function defaultColumnsFor(size: number): number {
@@ -26,6 +28,7 @@ export default function SeatGrid({
   layout = 'rows',
   columns,
   showStrikePriority,
+  onSwap,
 }: Props) {
   const bySeat = new Map<number, Juror>();
   for (const j of jurors) {
@@ -52,8 +55,41 @@ export default function SeatGrid({
 
   const gridStyle = { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` };
 
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+
+  function handleDragStart(seat: number, ev: React.DragEvent) {
+    setDragFrom(seat);
+    // Required on some browsers for the drag to register
+    ev.dataTransfer.effectAllowed = 'move';
+    ev.dataTransfer.setData('text/plain', String(seat));
+  }
+
+  function handleDragOver(seat: number, ev: React.DragEvent) {
+    if (dragFrom == null || dragFrom === seat) return;
+    ev.preventDefault();
+    ev.dataTransfer.dropEffect = 'move';
+    if (dragOver !== seat) setDragOver(seat);
+  }
+
+  function handleDrop(seat: number, ev: React.DragEvent) {
+    ev.preventDefault();
+    const from = dragFrom;
+    setDragFrom(null);
+    setDragOver(null);
+    if (from == null || from === seat) return;
+    if (onSwap) onSwap(from, seat);
+  }
+
   return (
-    <div className="grid gap-2" style={gridStyle}>
+    <div
+      className="grid gap-2"
+      style={gridStyle}
+      onDragEnd={() => {
+        setDragFrom(null);
+        setDragOver(null);
+      }}
+    >
       {seatOrder.map((seat, i) => {
         if (seat === 0) {
           return <div key={`blank-${i}`} />;
@@ -65,6 +101,12 @@ export default function SeatGrid({
             juror={bySeat.get(seat)}
             onClick={onSeatClick ? () => onSeatClick(seat) : undefined}
             showStrikePriority={showStrikePriority}
+            draggable={!!onSwap}
+            onDragStart={onSwap ? handleDragStart : undefined}
+            onDragOver={onSwap ? handleDragOver : undefined}
+            onDrop={onSwap ? handleDrop : undefined}
+            isDragging={dragFrom === seat}
+            isDragOver={dragOver === seat}
           />
         );
       })}

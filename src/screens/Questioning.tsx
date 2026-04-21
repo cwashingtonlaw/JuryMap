@@ -7,7 +7,12 @@ import JurorDrawer from '../components/JurorDrawer';
 import DisqualifyModal, {
   type DisqualifyKind,
 } from '../components/DisqualifyModal';
-import { replaceInSeat, slideLeft, makeEmptyJuror } from '../lib/panel';
+import {
+  replaceInSeat,
+  slideLeft,
+  swapSeats,
+  makeEmptyJuror,
+} from '../lib/panel';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { serializeCase } from '../lib/juryfile';
 import { saveJuryFile } from '../lib/files';
@@ -173,6 +178,14 @@ export default function Questioning() {
               });
             }
             setOpenSeat(s);
+          }}
+          onSwap={async (from, to) => {
+            await updateCase((draft) => {
+              const idx = draft.currentPanelIndex;
+              const p = draft.panels[idx];
+              const result = swapSeats(p, from, to);
+              draft.panels[idx] = result.panel;
+            });
           }}
         />
       </div>

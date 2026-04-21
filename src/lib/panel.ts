@@ -132,3 +132,73 @@ export function slideLeft(
 
   return { panel: { ...panel, jurors: nextJurors } };
 }
+
+/**
+ * Swap or move a juror from one seat to another.
+ *
+ * - If both seats are occupied: swap the two jurors' seatIndex (and write a
+ *   seatHistory entry on each).
+ * - If the target seat is empty: move the source juror into it, leaving the
+ *   source seat empty.
+ * - If the source seat is empty: noop (nothing to move).
+ * - If source === target: noop.
+ *
+ * This is a visual rearrangement tool — strikes, disqualifications, and juror
+ * identity are unaffected. It exists so the attorney can group cards by
+ * priority or lean during the tactical planning phase.
+ */
+export function swapSeats(
+  panel: Panel,
+  fromSeat: number,
+  toSeat: number
+): { panel: Panel } {
+  if (fromSeat === toSeat) return { panel };
+
+  const now = tsNow();
+  const source = panel.jurors.find((j) => j.seatIndex === fromSeat);
+  const target = panel.jurors.find((j) => j.seatIndex === toSeat);
+
+  if (!source) return { panel };
+
+  const nextJurors: Juror[] = panel.jurors.map((j) => {
+    if (j.id === source.id) {
+      return {
+        ...j,
+        seatIndex: toSeat,
+        seatHistory: [
+          ...j.seatHistory,
+          {
+            at: now,
+            fromSeat,
+            toSeat,
+            reason: target
+              ? `swapped with seat ${toSeat}`
+              : `moved to seat ${toSeat}`,
+            kind: 'slide-left' as const,
+          },
+        ],
+        updatedAt: now,
+      };
+    }
+    if (target && j.id === target.id) {
+      return {
+        ...j,
+        seatIndex: fromSeat,
+        seatHistory: [
+          ...j.seatHistory,
+          {
+            at: now,
+            fromSeat: toSeat,
+            toSeat: fromSeat,
+            reason: `swapped with seat ${fromSeat}`,
+            kind: 'slide-left' as const,
+          },
+        ],
+        updatedAt: now,
+      };
+    }
+    return j;
+  });
+
+  return { panel: { ...panel, jurors: nextJurors } };
+}

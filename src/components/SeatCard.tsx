@@ -5,6 +5,12 @@ interface Props {
   juror?: Juror;
   onClick?: () => void;
   showStrikePriority?: boolean; // Decision mode renders a ring overlay
+  draggable?: boolean;          // Enable drag-to-swap (Questioning only)
+  onDragStart?: (seat: number, ev: React.DragEvent) => void;
+  onDragOver?: (seat: number, ev: React.DragEvent) => void;
+  onDrop?: (seat: number, ev: React.DragEvent) => void;
+  isDragging?: boolean;
+  isDragOver?: boolean;
 }
 
 const LEAN_COLOR: Record<number, string> = {
@@ -61,6 +67,12 @@ export default function SeatCard({
   juror,
   onClick,
   showStrikePriority,
+  draggable,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  isDragging,
+  isDragOver,
 }: Props) {
   const badge = juror ? STATUS_BADGE[juror.status] : undefined;
   const dimmed = juror && juror.status !== 'active' && juror.status !== 'kept';
@@ -72,12 +84,25 @@ export default function SeatCard({
       type="button"
       data-testid={`seat-${seat}`}
       onClick={onClick}
+      draggable={draggable && !!juror ? true : undefined}
+      onDragStart={
+        draggable && juror && onDragStart
+          ? (e) => onDragStart(seat, e)
+          : undefined
+      }
+      onDragOver={
+        draggable && onDragOver ? (e) => onDragOver(seat, e) : undefined
+      }
+      onDrop={draggable && onDrop ? (e) => onDrop(seat, e) : undefined}
       className={
         'text-left rounded-md bg-[var(--card-paper)] border border-[var(--card-rule)] ' +
         'p-2 min-h-32 border-l-4 ' +
         (juror ? LEAN_COLOR[juror.lean] : 'border-l-slate-200') +
         (dimmed ? ' opacity-60' : '') +
-        (priorityRing ? ' ' + priorityRing : '')
+        (priorityRing ? ' ' + priorityRing : '') +
+        (isDragging ? ' opacity-40' : '') +
+        (isDragOver ? ' ring-2 ring-blue-500 ring-offset-1' : '') +
+        (draggable && juror ? ' cursor-grab active:cursor-grabbing' : '')
       }
     >
       <div className="text-[10px] text-slate-500 flex justify-between">
@@ -94,6 +119,11 @@ export default function SeatCard({
       {juror?.employment.jobTitle && (
         <div className="text-xs text-slate-600 mt-1 line-clamp-1">
           {juror.employment.jobTitle}
+        </div>
+      )}
+      {juror?.notes && juror.notes.trim() && (
+        <div className="text-[11px] text-slate-700 mt-1.5 line-clamp-4 whitespace-pre-wrap border-t border-slate-200/70 pt-1.5">
+          {juror.notes}
         </div>
       )}
       <div className="text-[10px] uppercase tracking-wider text-slate-500 mt-2 flex gap-1 items-center">
