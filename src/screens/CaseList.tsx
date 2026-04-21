@@ -5,10 +5,22 @@ import { listCases } from '../db/repository';
 import { importCaseFromFile } from '../db/repository';
 import type { CaseIndexRow } from '../types/case';
 import { openJuryFile } from '../lib/files';
+import { shouldShowInstallPrompt, isStandalonePwa } from '../lib/platform';
 
 export default function CaseList() {
   const [rows, setRows] = useState<CaseIndexRow[] | null>(null);
   const nav = useNavigate();
+
+  const [showInstallBanner, setShowInstallBanner] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    if (window.localStorage.getItem('jury:dismissedInstallBanner') === '1') return false;
+    return shouldShowInstallPrompt();
+  });
+
+  function dismissInstallBanner() {
+    window.localStorage.setItem('jury:dismissedInstallBanner', '1');
+    setShowInstallBanner(false);
+  }
 
   async function onOpenFile() {
     const text = await openJuryFile();
@@ -53,6 +65,29 @@ export default function CaseList() {
           </Link>
         </div>
       </header>
+
+      {showInstallBanner && !isStandalonePwa() && (
+        <div className="bg-amber-50 border-b border-amber-200 px-8 py-3 flex items-center justify-between">
+          <div className="text-sm text-amber-900">
+            <strong>Install this app</strong> for stable offline storage on your
+            trial device.
+          </div>
+          <div className="flex gap-3 items-center">
+            <Link
+              to="/onboarding"
+              className="text-sm font-medium text-amber-900 underline"
+            >
+              How to install
+            </Link>
+            <button
+              onClick={dismissInstallBanner}
+              className="text-sm text-amber-900/70 hover:text-amber-900"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="p-8">
         {rows.length === 0 ? (
