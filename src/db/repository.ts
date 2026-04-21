@@ -1,6 +1,7 @@
 import { db } from './db';
 import { newId } from '../lib/id';
 import { CURRENT_SCHEMA_VERSION } from '../types/schema';
+import { deserializeCase } from '../lib/juryfile';
 import { migrate } from './migrations';
 import type { Case, CaseIndexRow, Juror, JurorStatus, Panel, PeremptoryBudget } from '../types/case';
 import type { VenireRow } from '../lib/venire-import';
@@ -222,6 +223,14 @@ export function seatedJurors(c: Case): Juror[] {
   return c.panels.flatMap((p) =>
     p.jurors.filter((j) => j.status === 'kept')
   );
+}
+
+export async function importCaseFromFile(payload: string): Promise<string> {
+  const c = deserializeCase(payload);
+  // Generate a new id to avoid clobbering an existing case with the same id
+  const imported = { ...c, id: newId(), updatedAt: new Date().toISOString() };
+  await saveCase(imported);
+  return imported.id;
 }
 
 export async function reorderSeatedJurors(

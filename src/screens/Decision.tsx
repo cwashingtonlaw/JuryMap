@@ -12,6 +12,9 @@ import {
   startNextPanel,
   getCase,
 } from '../db/repository';
+import { serializeCase } from '../lib/juryfile';
+import { saveJuryFile } from '../lib/files';
+import { useFileShortcuts } from '../hooks/useFileShortcuts';
 
 export default function Decision() {
   const { caseId } = useParams();
@@ -35,6 +38,19 @@ export default function Decision() {
     await loadCase(caseId);
     setOpenJurorId(null);
   }
+
+  useFileShortcuts({
+    onSave: async () => {
+      if (!activeCase) return;
+      const name =
+        (activeCase.meta.name || 'case')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '') + '.jury';
+      const text = serializeCase(activeCase, 'jury-selection-app/0.2.0');
+      await saveJuryFile(name, text);
+    },
+  });
 
   if (!activeCase || !panel) {
     return <div className="p-8 text-slate-500">Loading…</div>;

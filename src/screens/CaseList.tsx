@@ -1,10 +1,25 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { listCases } from '../db/repository';
+import { importCaseFromFile } from '../db/repository';
 import type { CaseIndexRow } from '../types/case';
+import { openJuryFile } from '../lib/files';
 
 export default function CaseList() {
   const [rows, setRows] = useState<CaseIndexRow[] | null>(null);
+  const nav = useNavigate();
+
+  async function onOpenFile() {
+    const text = await openJuryFile();
+    if (!text) return;
+    try {
+      const id = await importCaseFromFile(text);
+      nav(`/cases/${id}/questioning`);
+    } catch (e) {
+      alert('Could not open .jury file: ' + (e as Error).message);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -22,12 +37,21 @@ export default function CaseList() {
     <div className="min-h-full">
       <header className="border-b border-slate-200 bg-white px-8 py-4 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Cases</h1>
-        <Link
-          to="/cases/new"
-          className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
-        >
-          New Case
-        </Link>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onOpenFile}
+            className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium hover:bg-slate-100"
+          >
+            Open .jury File
+          </button>
+          <Link
+            to="/cases/new"
+            className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+          >
+            New Case
+          </Link>
+        </div>
       </header>
 
       <div className="p-8">

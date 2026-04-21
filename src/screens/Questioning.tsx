@@ -10,6 +10,9 @@ import DisqualifyModal, {
 } from '../components/DisqualifyModal';
 import { replaceInSeat, slideLeft } from '../lib/panel';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { serializeCase } from '../lib/juryfile';
+import { saveJuryFile } from '../lib/files';
+import { useFileShortcuts } from '../hooks/useFileShortcuts';
 
 export default function Questioning() {
   const { caseId } = useParams();
@@ -91,6 +94,19 @@ export default function Questioning() {
     },
     selectedJuror != null
   );
+
+  useFileShortcuts({
+    onSave: async () => {
+      if (!activeCase) return;
+      const name =
+        (activeCase.meta.name || 'case')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '') + '.jury';
+      const text = serializeCase(activeCase, 'jury-selection-app/0.2.0');
+      await saveJuryFile(name, text);
+    },
+  });
 
   if (!activeCase || !panel) return <div className="p-8 text-slate-500">Loading…</div>;
 
