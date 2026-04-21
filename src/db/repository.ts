@@ -250,3 +250,17 @@ export async function reorderSeatedJurors(
   c.seatedJurorOrder = newOrder;
   await saveCase(c);
 }
+
+export async function archiveCase(caseId: string): Promise<void> {
+  const c = await getCase(caseId);
+  if (!c) throw new Error(`Case ${caseId} not found`);
+  c.archived = true;
+  await saveCase(c);
+}
+
+export async function unarchiveCase(caseId: string): Promise<void> {
+  const c = await getCase(caseId);
+  if (!c) throw new Error(`Case ${caseId} not found`);
+  c.archived = false;
+  await saveCase(c);
+}

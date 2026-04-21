@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import { listCases } from '../db/repository';
+import { listCases, archiveCase, unarchiveCase } from '../db/repository';
 import { importCaseFromFile } from '../db/repository';
 import type { CaseIndexRow } from '../types/case';
 import { openJuryFile } from '../lib/files';
@@ -9,6 +9,7 @@ import { shouldShowInstallPrompt, isStandalonePwa } from '../lib/platform';
 
 export default function CaseList() {
   const [rows, setRows] = useState<CaseIndexRow[] | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
   const nav = useNavigate();
 
   const [showInstallBanner, setShowInstallBanner] = useState(() => {
@@ -33,15 +34,26 @@ export default function CaseList() {
     }
   }
 
+  async function refresh() {
+    const r = await listCases({ includeArchived: showArchived });
+    setRows(r);
+  }
+
   useEffect(() => {
     let cancelled = false;
-    listCases({ includeArchived: false }).then((r) => {
+    listCases({ includeArchived: showArchived }).then((r) => {
       if (!cancelled) setRows(r);
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [showArchived]);
+
+  async function toggleArchive(id: string, next: boolean) {
+    if (next) await archiveCase(id);
+    else await unarchiveCase(id);
+    await refresh();
+  }
 
   if (rows === null) return <div className="p-8 text-slate-500">Loading…</div>;
 
@@ -50,6 +62,14 @@ export default function CaseList() {
       <header className="border-b border-slate-200 bg-white px-8 py-4 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Cases</h1>
         <div className="flex gap-2 items-center">
+          <label className="text-sm text-slate-600 flex items-center gap-1 mr-3">
+            <input
+              type="checkbox"
+              checked={showArchived}
+              onChange={(e) => setShowArchived(e.target.checked)}
+            />
+            Show archived
+          </label>
           <Link
             to="/help"
             className="text-sm text-slate-600 hover:text-slate-900 mr-1"
@@ -103,16 +123,30 @@ export default function CaseList() {
         ) : (
           <ul className="grid gap-3">
             {rows.map((r) => (
-              <li key={r.id}>
+              <li key={r.id} className="flex items-stretch gap-2">
                 <Link
                   to={`/cases/${r.id}/questioning`}
-                  className="block rounded-md border border-slate-200 bg-white px-4 py-3 hover:border-slate-400"
+                  className="flex-1 block rounded-md border border-slate-200 bg-white px-4 py-3 hover:border-slate-400"
                 >
-                  <div className="font-medium text-slate-900">{r.name}</div>
+                  <div className="font-medium text-slate-900">
+                    {r.name}
+                    {r.archived && (
+                      <span className="ml-2 text-xs text-slate-500 uppercase tracking-wider">
+                        Archived
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-slate-500">
                     Last edited {new Date(r.updatedAt).toLocaleString()}
                   </div>
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => toggleArchive(r.id, !r.archived)}
+                  className="rounded-md border border-slate-200 px-3 text-sm text-slate-600 hover:bg-slate-100"
+                >
+                  {r.archived ? 'Unarchive' : 'Archive'}
+                </button>
               </li>
             ))}
           </ul>
