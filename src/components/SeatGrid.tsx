@@ -53,7 +53,10 @@ export default function SeatGrid({
   // Pad so the grid stays rectangular
   while (seatOrder.length < rows * cols) seatOrder.push(0); // 0 = placeholder
 
-  const gridStyle = { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` };
+  const gridStyle = {
+    gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+    gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+  };
 
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
@@ -83,7 +86,7 @@ export default function SeatGrid({
 
   return (
     <div
-      className="grid gap-2"
+      className="grid gap-2 h-full"
       style={gridStyle}
       onDragEnd={() => {
         setDragFrom(null);

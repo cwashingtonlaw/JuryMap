@@ -68,8 +68,8 @@ export default function Decision() {
   }
 
   return (
-    <div className="min-h-full flex flex-col">
-      <header className="border-b border-slate-200 bg-white px-8 py-4 flex items-center justify-between">
+    <div className="h-full flex flex-col">
+      <header className="border-b border-slate-200 bg-white px-8 py-4 flex items-center justify-between shrink-0">
         <div>
           <h1 className="text-xl font-semibold">{activeCase.meta.name}</h1>
           <div className="text-xs text-slate-500">
@@ -125,7 +125,7 @@ export default function Decision() {
       <BatsonTallyHeader activeCase={activeCase} />
 
       <div className="flex flex-1 min-h-0">
-        <div className="flex-1 p-8 overflow-auto">
+        <div className="flex-1 p-4 min-h-0">
           <SeatGrid
             jurors={panel.jurors}
             venireSize={activeCase.meta.venireSize}

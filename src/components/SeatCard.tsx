@@ -1,4 +1,14 @@
-import type { Juror, JurorStatus, StrikePriority } from '../types/case';
+import type {
+  Juror,
+  JurorFlags,
+  JurorStatus,
+  StrikePriority,
+} from '../types/case';
+import {
+  RACE_LABELS,
+  GENDER_LABELS,
+  MARITAL_LABELS,
+} from '../types/demographics';
 
 interface Props {
   seat: number;
@@ -62,6 +72,23 @@ const PRIORITY_RING: Record<StrikePriority, string> = {
   5: 'ring-4 ring-red-700',
 };
 
+// Short abbreviation shown as a chip when a flag is true.
+const FLAG_CHIP_LABEL: Record<keyof JurorFlags, string> = {
+  priorJury: 'Prior jury',
+  crimeVictim: 'Victim',
+  leFamily: 'LE fam',
+  leFriend: 'LE frnd',
+  arrestHx: 'Arrest',
+  convictionHx: 'Conv',
+  hardship: 'Hardship',
+};
+
+function activeFlagKeys(flags: JurorFlags): (keyof JurorFlags)[] {
+  return (Object.keys(FLAG_CHIP_LABEL) as (keyof JurorFlags)[]).filter(
+    (k) => flags[k].value
+  );
+}
+
 export default function SeatCard({
   seat,
   juror,
@@ -78,6 +105,29 @@ export default function SeatCard({
   const dimmed = juror && juror.status !== 'active' && juror.status !== 'kept';
   const priorityRing =
     showStrikePriority && juror ? PRIORITY_RING[juror.strikePriority] : '';
+
+  // Assemble the "identity line": age · race · gender · marital (where known).
+  const idParts: string[] = [];
+  if (juror) {
+    if (juror.identity.age != null) idParts.push(`${juror.identity.age}`);
+    if (juror.demographics.race !== 'unknown') {
+      idParts.push(RACE_LABELS[juror.demographics.race]);
+    }
+    if (juror.demographics.gender !== 'unknown') {
+      idParts.push(GENDER_LABELS[juror.demographics.gender]);
+    }
+    if (juror.demographics.maritalStatus !== 'unknown') {
+      idParts.push(MARITAL_LABELS[juror.demographics.maritalStatus]);
+    }
+  }
+
+  // Employment line: "Job at Employer" / "Job" / "Employer" / nothing.
+  const job = juror?.employment.jobTitle?.trim() ?? '';
+  const employer = juror?.employment.employer?.trim() ?? '';
+  const employmentLine =
+    job && employer ? `${job} at ${employer}` : job || employer;
+
+  const flagChips = juror ? activeFlagKeys(juror.flags) : [];
 
   return (
     <button
@@ -96,7 +146,7 @@ export default function SeatCard({
       onDrop={draggable && onDrop ? (e) => onDrop(seat, e) : undefined}
       className={
         'text-left rounded-md bg-[var(--card-paper)] border border-[var(--card-rule)] ' +
-        'p-2 min-h-32 border-l-4 ' +
+        'p-2 border-l-4 h-full flex flex-col overflow-hidden ' +
         (juror ? LEAN_COLOR[juror.lean] : 'border-l-slate-200') +
         (dimmed ? ' opacity-60' : '') +
         (priorityRing ? ' ' + priorityRing : '') +
@@ -105,42 +155,67 @@ export default function SeatCard({
         (draggable && juror ? ' cursor-grab active:cursor-grabbing' : '')
       }
     >
-      <div className="text-[10px] text-slate-500 flex justify-between">
+      {/* Header row: seat number + juror number + status badge (top-right) */}
+      <div className="text-[10px] text-slate-500 flex justify-between items-center shrink-0">
         <span>Seat {seat}</span>
-        {juror?.identity.jurorNumber && (
-          <span>#{juror.identity.jurorNumber}</span>
-        )}
+        <div className="flex items-center gap-1">
+          {juror?.identity.jurorNumber && (
+            <span>#{juror.identity.jurorNumber}</span>
+          )}
+          {badge && (
+            <span
+              className={
+                'ml-1 px-1.5 py-0.5 rounded text-[9px] font-semibold ' +
+                badge.klass
+              }
+            >
+              {badge.label}
+            </span>
+          )}
+        </div>
       </div>
-      <div className="text-sm font-medium mt-1">
+
+      {/* Name */}
+      <div className="text-sm font-medium mt-1 shrink-0 line-clamp-1">
         {juror?.identity.name || (
           <span className="text-slate-400 italic">Empty</span>
         )}
       </div>
-      {juror?.employment.jobTitle && (
-        <div className="text-xs text-slate-600 mt-1 line-clamp-1">
-          {juror.employment.jobTitle}
+
+      {/* Identity / demographics line */}
+      {idParts.length > 0 && (
+        <div className="text-[11px] text-slate-600 mt-0.5 shrink-0 line-clamp-1">
+          {idParts.join(' · ')}
         </div>
       )}
+
+      {/* Employment */}
+      {employmentLine && (
+        <div className="text-[11px] text-slate-700 mt-1 shrink-0 line-clamp-2">
+          {employmentLine}
+        </div>
+      )}
+
+      {/* Flag chips */}
+      {flagChips.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1 shrink-0">
+          {flagChips.map((k) => (
+            <span
+              key={k}
+              className="text-[9px] uppercase tracking-wider px-1 py-0.5 rounded bg-amber-100 text-amber-800"
+            >
+              {FLAG_CHIP_LABEL[k]}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Notes — take all remaining vertical space */}
       {juror?.notes && juror.notes.trim() && (
-        <div className="text-[11px] text-slate-700 mt-1.5 line-clamp-4 whitespace-pre-wrap border-t border-slate-200/70 pt-1.5">
+        <div className="text-[11px] text-slate-800 mt-1.5 whitespace-pre-wrap border-t border-slate-200/70 pt-1.5 flex-1 min-h-0 overflow-hidden">
           {juror.notes}
         </div>
       )}
-      <div className="text-[10px] uppercase tracking-wider text-slate-500 mt-2 flex gap-1 items-center">
-        {juror?.demographics.maritalStatus &&
-          juror.demographics.maritalStatus !== 'unknown' &&
-          juror.demographics.maritalStatus}
-        {badge && (
-          <span
-            className={
-              'ml-auto px-1.5 py-0.5 rounded text-[9px] font-semibold ' +
-              badge.klass
-            }
-          >
-            {badge.label}
-          </span>
-        )}
-      </div>
     </button>
   );
 }
