@@ -1,4 +1,5 @@
 import type { Case, Juror } from '../types/case';
+import { fisherExact2x2 } from './fisher';
 
 export type Side = 'defense' | 'state';
 
@@ -165,6 +166,49 @@ export function batsonPatternFlags(c: Case): PatternFlag[] {
         flags.push({
           severity: 'alert',
           message: `${SIDE_TITLE[side]} peremptory count against ${RACE_TITLE[race]} jurors is ${n} — a Batson prima facie case is likely established.`,
+        });
+      }
+    }
+  });
+
+  // Fisher's exact test: for each (side × race), test whether this side's
+  // strikes against this race are independent of the venire's racial makeup.
+  // Uses all strikes + unstruck jurors across all panels with known race.
+  const venireJurors = c.panels
+    .flatMap((p) => p.jurors)
+    .filter(
+      (j) => j.demographics.race !== 'unknown' && j.seatIndex != null
+    );
+  const byRaceTotal: Record<string, number> = {};
+  for (const j of venireJurors) {
+    byRaceTotal[j.demographics.race] =
+      (byRaceTotal[j.demographics.race] ?? 0) + 1;
+  }
+
+  (['defense', 'state'] as const).forEach((side) => {
+    const sideTotal = Object.values(perSide[side]).reduce((x, y) => x + y, 0);
+    if (sideTotal < 2) return;
+    for (const [race, strikesOfRaceBySide] of Object.entries(perSide[side])) {
+      if (strikesOfRaceBySide < 2) continue;
+      const totalOfRace = byRaceTotal[race] ?? 0;
+      if (totalOfRace < strikesOfRaceBySide) continue;
+      const strikesOfOtherRacesBySide = sideTotal - strikesOfRaceBySide;
+      const venireTotal = venireJurors.length;
+      const unstruckOfRace = totalOfRace - strikesOfRaceBySide;
+      const unstruckOfOtherRaces =
+        venireTotal - totalOfRace - strikesOfOtherRacesBySide;
+      if (unstruckOfRace < 0 || unstruckOfOtherRaces < 0) continue;
+
+      const fisher = fisherExact2x2(
+        strikesOfRaceBySide,
+        strikesOfOtherRacesBySide,
+        unstruckOfRace,
+        unstruckOfOtherRaces
+      );
+      if (fisher.pTwoTailed < 0.05) {
+        flags.push({
+          severity: 'alert',
+          message: `${SIDE_TITLE[side]}'s strikes against ${RACE_TITLE[race]} jurors are statistically significant (Fisher's exact p = ${fisher.pTwoTailed.toFixed(3)}).`,
         });
       }
     }

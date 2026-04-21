@@ -217,4 +217,41 @@ describe('batsonPatternFlags', () => {
     ]);
     expect(batsonPatternFlags(c)).toEqual([]);
   });
+
+  it('fires a Fisher alert when strike pattern is statistically extreme', () => {
+    // Venire: 10 black, 10 white. State strikes 5 black, 0 white.
+    // Fisher's exact: [[5, 0], [5, 10]] → p ≈ 0.033 (significant, two-tailed)
+    const jurors: Juror[] = [];
+    for (let i = 0; i < 5; i++) {
+      jurors.push(
+        juror({
+          status: 'struck-peremptory-state',
+          seatIndex: i + 1,
+          demographics: { race: 'black', gender: 'male', maritalStatus: 'unknown' },
+        })
+      );
+    }
+    for (let i = 0; i < 5; i++) {
+      jurors.push(
+        juror({
+          status: 'active',
+          seatIndex: i + 6,
+          demographics: { race: 'black', gender: 'male', maritalStatus: 'unknown' },
+        })
+      );
+    }
+    for (let i = 0; i < 10; i++) {
+      jurors.push(
+        juror({
+          status: 'active',
+          seatIndex: i + 11,
+          demographics: { race: 'white', gender: 'male', maritalStatus: 'unknown' },
+        })
+      );
+    }
+    const c = buildCase(jurors);
+    const flags = batsonPatternFlags(c);
+    expect(flags.some((f) => /Fisher/i.test(f.message))).toBe(true);
+    expect(flags.some((f) => /0\.0[0-4]\d+/.test(f.message))).toBe(true);
+  });
 });
