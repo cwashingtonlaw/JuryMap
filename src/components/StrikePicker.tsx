@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { JurorStatus } from '../types/case';
+import type { JurorStatus, StrikePriority } from '../types/case';
 
 export type StrikeChoice =
   | 'kept'
@@ -13,9 +13,21 @@ interface Props {
   jurorName: string;
   currentStatus: JurorStatus;
   currentReason?: string;
+  currentPriority?: StrikePriority;
   onCancel: () => void;
   onConfirm: (status: StrikeChoice, reason: string) => void;
+  onPriorityChange?: (priority: StrikePriority) => void;
 }
+
+const PRIORITY_VALUES: StrikePriority[] = [0, 1, 2, 3, 4, 5];
+const PRIORITY_LABELS: Record<StrikePriority, string> = {
+  0: '—',
+  1: '1 (maybe)',
+  2: '2',
+  3: '3',
+  4: '4',
+  5: '5 (strike first)',
+};
 
 const OPTIONS: { value: StrikeChoice; label: string; hint?: string }[] = [
   { value: 'kept', label: 'Keep', hint: 'Juror stays in the box' },
@@ -50,14 +62,17 @@ export default function StrikePicker({
   jurorName,
   currentStatus,
   currentReason,
+  currentPriority,
   onCancel,
   onConfirm,
+  onPriorityChange,
 }: Props) {
   const initial: StrikeChoice =
     currentStatus === 'active' ? 'kept' : (currentStatus as StrikeChoice);
   const [choice, setChoice] = useState<StrikeChoice>(initial);
   const [reason, setReason] = useState(currentReason ?? '');
   const [error, setError] = useState<string | null>(null);
+  const priority: StrikePriority = currentPriority ?? 0;
 
   const reasonRequired = choice !== 'kept';
 
@@ -79,6 +94,34 @@ export default function StrikePicker({
           Every non-keep decision requires a written reason. The reason is
           preserved in the record for appellate review and Batson analysis.
         </p>
+
+        {onPriorityChange && (
+          <fieldset className="mb-4">
+            <legend className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-2">
+              Strike priority (optional, visible as ring on the seat)
+            </legend>
+            <div className="flex flex-wrap gap-2">
+              {PRIORITY_VALUES.map((p) => {
+                const selected = priority === p;
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => onPriorityChange(p)}
+                    className={
+                      'text-xs px-2 py-1 rounded-md border ' +
+                      (selected
+                        ? 'bg-slate-900 text-white border-slate-900'
+                        : 'bg-white border-slate-300 text-slate-600 hover:border-slate-400')
+                    }
+                  >
+                    {PRIORITY_LABELS[p]}
+                  </button>
+                );
+              })}
+            </div>
+          </fieldset>
+        )}
 
         <fieldset className="grid gap-2 mb-4">
           {OPTIONS.map((opt) => (

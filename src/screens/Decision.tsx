@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
+import type { StrikePriority } from '../types/case';
 import SeatGrid from '../components/SeatGrid';
 import StrikePicker, { type StrikeChoice } from '../components/StrikePicker';
 import PeremptoryTracker from '../components/PeremptoryTracker';
@@ -20,6 +21,7 @@ export default function Decision() {
   const { caseId } = useParams();
   const activeCase = useCaseStore((s) => s.activeCase);
   const loadCase = useCaseStore((s) => s.loadCase);
+  const updateCase = useCaseStore((s) => s.updateCase);
 
   const nav = useNavigate();
 
@@ -37,6 +39,15 @@ export default function Decision() {
     await markJurorStrike(caseId, openJurorId, { status, reason });
     await loadCase(caseId);
     setOpenJurorId(null);
+  }
+
+  async function onPriorityChange(priority: StrikePriority) {
+    if (!openJurorId) return;
+    await updateCase((draft) => {
+      const p = draft.panels[draft.currentPanelIndex];
+      const j = p.jurors.find((x) => x.id === openJurorId);
+      if (j) j.strikePriority = priority;
+    });
   }
 
   useFileShortcuts({
@@ -119,6 +130,7 @@ export default function Decision() {
             jurors={panel.jurors}
             venireSize={activeCase.meta.venireSize}
             layout={activeCase.meta.seatLayout}
+            showStrikePriority
             onSeatClick={(seat) => {
               const j = panel.jurors.find((x) => x.seatIndex === seat);
               if (j) setOpenJurorId(j.id);
@@ -133,8 +145,10 @@ export default function Decision() {
           jurorName={openJuror.identity.name}
           currentStatus={openJuror.status}
           currentReason={openJuror.strikeReason}
+          currentPriority={openJuror.strikePriority}
           onCancel={() => setOpenJurorId(null)}
           onConfirm={onSave}
+          onPriorityChange={onPriorityChange}
         />
       )}
     </div>

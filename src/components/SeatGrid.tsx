@@ -4,9 +4,10 @@ import type { Juror } from '../types/case';
 interface Props {
   jurors: Juror[];
   onSeatClick?: (seat: number) => void;
-  venireSize?: number;         // default 21
-  layout?: 'rows' | 'snake';   // default 'rows'
-  columns?: number;            // override columns (optional)
+  venireSize?: number;             // default 21
+  layout?: 'rows' | 'snake';       // default 'rows'
+  columns?: number;                // override columns (optional)
+  showStrikePriority?: boolean;    // Decision mode renders the priority ring
 }
 
 function defaultColumnsFor(size: number): number {
@@ -24,6 +25,7 @@ export default function SeatGrid({
   venireSize = 21,
   layout = 'rows',
   columns,
+  showStrikePriority,
 }: Props) {
   const bySeat = new Map<number, Juror>();
   for (const j of jurors) {
@@ -62,6 +64,7 @@ export default function SeatGrid({
             seat={seat}
             juror={bySeat.get(seat)}
             onClick={onSeatClick ? () => onSeatClick(seat) : undefined}
+            showStrikePriority={showStrikePriority}
           />
         );
       })}
