@@ -47,6 +47,8 @@ export async function createCase(input: CreateCaseInput): Promise<Case> {
       targetJurors: input.targetJurors ?? 12,
       targetAlternates: input.targetAlternates ?? 2,
       peremptoryBudget: input.peremptoryBudget ?? { defense: 12, state: 12 },
+      venireSize: 21,
+      seatLayout: 'rows',
     },
     mode: 'questioning',
     currentPanelIndex: 0,

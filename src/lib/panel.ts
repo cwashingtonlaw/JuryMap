@@ -20,6 +20,8 @@ export function makeEmptyJuror(panelId: string, seatIndex: number | null = null)
     views: {},
     notes: '',
     lean: 0,
+    reactions: [],
+    strikePriority: 0,
     status: 'active',
     createdAt: now,
     updatedAt: now,

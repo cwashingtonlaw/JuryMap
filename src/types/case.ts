@@ -15,6 +15,20 @@ export type JurorStatus =
 
 export type Lean = -3 | -2 | -1 | 0 | 1 | 2 | 3;
 
+export type StrikePriority = 0 | 1 | 2 | 3 | 4 | 5;
+
+export type ReactionKind = 'behavior' | 'analogy-response';
+export type AnalogyResponse = 'yes' | 'no' | 'hesitant';
+
+export interface ReactionEntry {
+  at: string; // ISO timestamp
+  kind: ReactionKind;
+  note: string; // required for 'behavior', optional descriptive for 'analogy-response'
+  analogyId?: string; // present when kind === 'analogy-response'
+  checkpointId?: string; // present when kind === 'analogy-response'
+  response?: AnalogyResponse; // present when kind === 'analogy-response'
+}
+
 export interface FlagEntry {
   value: boolean;
   note?: string;
@@ -79,6 +93,8 @@ export interface Juror {
   demeanor?: string;
   notes: string; // markdown-capable free-form
   lean: Lean;
+  reactions: ReactionEntry[];
+  strikePriority: StrikePriority;
 
   status: JurorStatus;
   disqualificationReason?: string;
@@ -111,6 +127,8 @@ export interface CaseMeta {
   targetJurors: number;
   targetAlternates: number;
   peremptoryBudget: PeremptoryBudget;
+  venireSize: number;
+  seatLayout: 'rows' | 'snake';
 }
 
 export interface Case {

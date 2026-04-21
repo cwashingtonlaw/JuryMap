@@ -17,6 +17,8 @@ function caseWithJurors(jurors: Juror[]): Case {
       targetJurors: 12,
       targetAlternates: 2,
       peremptoryBudget: { defense: 12, state: 12 },
+      venireSize: 21,
+      seatLayout: 'rows' as const,
     },
     mode: 'decision',
     currentPanelIndex: 0,

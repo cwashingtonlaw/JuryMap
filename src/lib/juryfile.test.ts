@@ -6,12 +6,14 @@ function sampleCase(): Case {
   const now = new Date().toISOString();
   return {
     id: 'c',
-    schemaVersion: 1,
+    schemaVersion: 2,
     meta: {
       name: 'State v. X',
       targetJurors: 12,
       targetAlternates: 2,
       peremptoryBudget: { defense: 12, state: 12 },
+      venireSize: 21,
+      seatLayout: 'rows',
     },
     mode: 'questioning',
     currentPanelIndex: 0,
@@ -43,7 +45,7 @@ describe('serializeCase / deserializeCase', () => {
     const c = sampleCase();
     const payload = serializeCase(c, 'jury-selection-app/0.2.0');
     const obj = JSON.parse(payload);
-    expect(obj.schemaVersion).toBe(1);
+    expect(obj.schemaVersion).toBe(2);
     expect(typeof obj.exportedAt).toBe('string');
     expect(obj.exportedBy).toBe('jury-selection-app/0.2.0');
     expect(obj.case.id).toBe('c');
