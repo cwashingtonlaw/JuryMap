@@ -50,4 +50,18 @@ describe('CaseSetup', () => {
     ) as HTMLInputElement;
     expect(defenseInput.value).toBe('12');
   });
+
+  it('persists venireSize when the user picks 6', async () => {
+    const user = userEvent.setup();
+    renderAt('/cases/new');
+    await user.type(screen.getByLabelText(/case name/i), 'Small Panel');
+    await user.selectOptions(screen.getByLabelText(/venire size/i), '6');
+    await user.click(screen.getByRole('button', { name: /create case/i }));
+    expect(await screen.findByTestId('questioning')).toBeInTheDocument();
+    // Verify via the DB
+    const rows = await (await import('../db/repository')).listCases({ includeArchived: false });
+    const latest = rows[0];
+    const loaded = await (await import('../db/repository')).getCase(latest.id);
+    expect(loaded!.meta.venireSize).toBe(6);
+  });
 });

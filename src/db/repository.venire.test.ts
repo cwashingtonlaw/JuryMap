@@ -37,4 +37,14 @@ describe('populateFirstPanelFromVenire', () => {
     expect(loaded!.panels[0].jurors.length).toBe(2);
     expect(loaded!.panels[0].jurors[1].seatIndex).toBe(2);
   });
+
+  it('respects a smaller venireSize', async () => {
+    const c = await createCase({ name: 'Six', venireSize: 6 });
+    const rows = Array.from({ length: 25 }).map((_, i) => ({
+      name: `Juror ${i + 1}`,
+    }));
+    await populateFirstPanelFromVenire(c.id, rows);
+    const loaded = await getCase(c.id);
+    expect(loaded!.panels[0].jurors.length).toBe(6);
+  });
 });

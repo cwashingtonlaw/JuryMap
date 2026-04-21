@@ -117,6 +117,8 @@ export default function Decision() {
         <div className="flex-1 p-8 overflow-auto">
           <SeatGrid
             jurors={panel.jurors}
+            venireSize={activeCase.meta.venireSize}
+            layout={activeCase.meta.seatLayout}
             onSeatClick={(seat) => {
               const j = panel.jurors.find((x) => x.seatIndex === seat);
               if (j) setOpenJurorId(j.id);

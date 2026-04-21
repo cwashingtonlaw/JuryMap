@@ -16,6 +16,8 @@ export interface CreateCaseInput {
   targetJurors?: number;
   targetAlternates?: number;
   peremptoryBudget?: PeremptoryBudget;
+  venireSize?: number;
+  seatLayout?: 'rows' | 'snake';
 }
 
 function nowIso(): string {
@@ -47,8 +49,8 @@ export async function createCase(input: CreateCaseInput): Promise<Case> {
       targetJurors: input.targetJurors ?? 12,
       targetAlternates: input.targetAlternates ?? 2,
       peremptoryBudget: input.peremptoryBudget ?? { defense: 12, state: 12 },
-      venireSize: 21,
-      seatLayout: 'rows',
+      venireSize: input.venireSize ?? 21,
+      seatLayout: input.seatLayout ?? 'rows',
     },
     mode: 'questioning',
     currentPanelIndex: 0,
@@ -112,7 +114,8 @@ export async function populateFirstPanelFromVenire(
   if (!c) throw new Error(`Case ${caseId} not found`);
   const panel = c.panels[0];
   if (!panel) throw new Error(`Case has no initial panel`);
-  const limited = rows.slice(0, 21);
+  const cap = c.meta.venireSize ?? 21;
+  const limited = rows.slice(0, cap);
   panel.jurors = limited.map((row, i) => {
     const j = makeEmptyJuror(panel.id, i + 1);
     j.identity = {
@@ -134,8 +137,11 @@ export async function advanceToDecision(caseId: string): Promise<void> {
   const seated = panel.jurors.filter(
     (j) => j.seatIndex != null && (j.identity.name ?? '').trim()
   );
-  if (seated.length !== 21) {
-    throw new Error('Panel must have 21 named seats before advancing to Decision.');
+  const need = c.meta.venireSize ?? 21;
+  if (seated.length !== need) {
+    throw new Error(
+      `Panel must have ${need} named seats before advancing to Decision.`
+    );
   }
   c.mode = 'decision';
   await saveCase(c);

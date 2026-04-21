@@ -18,6 +18,8 @@ export default function CaseSetup() {
   const [preset, setPreset] = useState<PresetKey>('felony-12');
   const [defensePer, setDefensePer] = useState(12);
   const [statePer, setStatePer] = useState(12);
+  const [venireSize, setVenireSize] = useState(21);
+  const [seatLayout, setSeatLayout] = useState<'rows' | 'snake'>('rows');
   const [error, setError] = useState<string | null>(null);
   const [venireText, setVenireText] = useState('');
   const [venireFeedback, setVenireFeedback] = useState<string | null>(null);
@@ -48,6 +50,8 @@ export default function CaseSetup() {
       targetJurors,
       targetAlternates,
       peremptoryBudget: { defense: defensePer, state: statePer },
+      venireSize,
+      seatLayout,
     });
     if (venireText.trim()) {
       const { rows, errors } = parseVenire(venireText);
@@ -188,6 +192,41 @@ export default function CaseSetup() {
                   setPreset('custom');
                 }}
               />
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset className="grid gap-3 border border-slate-200 rounded-md p-4">
+          <legend className="text-sm font-medium px-1">
+            Venire &amp; seating
+          </legend>
+          <div className="grid grid-cols-2 gap-4">
+            <label className="grid gap-1">
+              <span className="text-sm">Venire size</span>
+              <select
+                className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                value={venireSize}
+                onChange={(e) => setVenireSize(parseInt(e.target.value) || 21)}
+              >
+                <option value={6}>6 (small panel)</option>
+                <option value={12}>12</option>
+                <option value={21}>21 (LA default)</option>
+                <option value={60}>60</option>
+                <option value={100}>100</option>
+              </select>
+            </label>
+            <label className="grid gap-1">
+              <span className="text-sm">Seat layout</span>
+              <select
+                className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                value={seatLayout}
+                onChange={(e) =>
+                  setSeatLayout(e.target.value as 'rows' | 'snake')
+                }
+              >
+                <option value="rows">Rows (left-to-right)</option>
+                <option value="snake">Snake (alternating direction)</option>
+              </select>
             </label>
           </div>
         </fieldset>

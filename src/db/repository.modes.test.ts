@@ -42,6 +42,17 @@ describe('advanceToDecision', () => {
       /21 named seats/i
     );
   });
+
+  it('respects venireSize for smaller juries', async () => {
+    const c = await createCase({ name: 'Six', targetJurors: 6, targetAlternates: 0, venireSize: 6 });
+    await populateFirstPanelFromVenire(c.id, [
+      { name: 'A' }, { name: 'B' }, { name: 'C' },
+      { name: 'D' }, { name: 'E' }, { name: 'F' },
+    ]);
+    await advanceToDecision(c.id);
+    const after = await getCase(c.id);
+    expect(after?.mode).toBe('decision');
+  });
 });
 
 describe('markJurorStrike', () => {

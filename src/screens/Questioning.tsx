@@ -141,7 +141,7 @@ export default function Questioning() {
           </Link>
           <button
             type="button"
-            disabled={!canFinishQuestioning(panel)}
+            disabled={!canFinishQuestioning(panel, activeCase.meta.venireSize)}
             onClick={async () => {
               if (!caseId) return;
               try {
@@ -161,6 +161,8 @@ export default function Questioning() {
       <div className="p-8">
         <SeatGrid
           jurors={panel.jurors}
+          venireSize={activeCase.meta.venireSize}
+          layout={activeCase.meta.seatLayout}
           onSeatClick={async (s) => {
             const existing = panel.jurors.find((j) => j.seatIndex === s);
             if (!existing) {
@@ -194,10 +196,12 @@ export default function Questioning() {
   );
 }
 
-function canFinishQuestioning(panel: any): boolean {
-  // A panel is ready when all 21 seats are filled and every seated juror has a name.
+function canFinishQuestioning(
+  panel: any,
+  venireSize: number
+): boolean {
   const seated = panel.jurors.filter(
     (j: any) => j.seatIndex != null && (j.identity?.name ?? '').trim()
   );
-  return seated.length === 21;
+  return seated.length === venireSize;
 }
