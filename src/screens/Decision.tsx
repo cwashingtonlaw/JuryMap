@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
 import SeatGrid from '../components/SeatGrid';
 import StrikePicker, { type StrikeChoice } from '../components/StrikePicker';
+import PeremptoryTracker from '../components/PeremptoryTracker';
+import BatsonTallyHeader from '../components/BatsonTallyHeader';
 import {
   markJurorStrike,
   finishDecisionsForPanel,
@@ -39,7 +41,7 @@ export default function Decision() {
   }
 
   return (
-    <div className="min-h-full">
+    <div className="min-h-full flex flex-col">
       <header className="border-b border-slate-200 bg-white px-8 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">{activeCase.meta.name}</h1>
@@ -87,14 +89,19 @@ export default function Decision() {
         </div>
       </header>
 
-      <div className="p-8">
-        <SeatGrid
-          jurors={panel.jurors}
-          onSeatClick={(seat) => {
-            const j = panel.jurors.find((x) => x.seatIndex === seat);
-            if (j) setOpenJurorId(j.id);
-          }}
-        />
+      <BatsonTallyHeader activeCase={activeCase} />
+
+      <div className="flex flex-1 min-h-0">
+        <div className="flex-1 p-8 overflow-auto">
+          <SeatGrid
+            jurors={panel.jurors}
+            onSeatClick={(seat) => {
+              const j = panel.jurors.find((x) => x.seatIndex === seat);
+              if (j) setOpenJurorId(j.id);
+            }}
+          />
+        </div>
+        <PeremptoryTracker activeCase={activeCase} />
       </div>
 
       {openJuror && (
