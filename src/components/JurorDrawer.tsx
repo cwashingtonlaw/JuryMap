@@ -1,6 +1,10 @@
-import { useEffect } from 'react';
-import type { Juror } from '../types/case';
+import { useEffect, useState } from 'react';
+import type { Juror, ReactionEntry } from '../types/case';
 import JurorFields from './JurorFields';
+import AnalogyLibrary from './AnalogyLibrary';
+import AnalogyPrompter from './AnalogyPrompter';
+import JurorAnalogySummary from './JurorAnalogySummary';
+import ReactionLog from './ReactionLog';
 
 interface Props {
   juror: Juror;
@@ -17,13 +21,25 @@ export default function JurorDrawer({
   onChange,
   onDisqualify,
 }: Props) {
+  const [analogyPickerOpen, setAnalogyPickerOpen] = useState(false);
+  const [activeAnalogyId, setActiveAnalogyId] = useState<string | null>(null);
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      // Don't let Escape close the drawer while a nested modal is open —
+      // the nested modal has its own close affordance and handling.
+      if (analogyPickerOpen || activeAnalogyId) return;
       if (e.key === 'Escape') onClose();
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, [onClose, analogyPickerOpen, activeAnalogyId]);
+
+  function recordReaction(entry: ReactionEntry) {
+    onChange((d) => {
+      d.reactions = [...(d.reactions ?? []), entry];
+    });
+  }
 
   return (
     <div className="fixed inset-0 z-20 flex">
@@ -44,7 +60,24 @@ export default function JurorDrawer({
             Close (Esc)
           </button>
         </div>
+
         <JurorFields juror={juror} readOnly={readOnly} onChange={onChange} />
+
+        {!readOnly && (
+          <div className="mt-6 border-t border-slate-200 pt-4 grid gap-2">
+            <button
+              onClick={() => setAnalogyPickerOpen(true)}
+              className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50"
+            >
+              Walk through an analogy…
+            </button>
+          </div>
+        )}
+
+        <JurorAnalogySummary juror={juror} />
+
+        <ReactionLog juror={juror} onRecord={recordReaction} />
+
         {onDisqualify && juror.seatIndex != null && (
           <div className="mt-6 border-t border-slate-200 pt-4">
             <button
@@ -56,6 +89,24 @@ export default function JurorDrawer({
           </div>
         )}
       </div>
+
+      {analogyPickerOpen && (
+        <AnalogyLibrary
+          onPick={(id) => {
+            setAnalogyPickerOpen(false);
+            setActiveAnalogyId(id);
+          }}
+          onClose={() => setAnalogyPickerOpen(false)}
+        />
+      )}
+      {activeAnalogyId && (
+        <AnalogyPrompter
+          analogyId={activeAnalogyId}
+          juror={juror}
+          onRecord={recordReaction}
+          onClose={() => setActiveAnalogyId(null)}
+        />
+      )}
     </div>
   );
 }
