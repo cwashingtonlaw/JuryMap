@@ -2,7 +2,7 @@ import { db } from './db';
 import { newId } from '../lib/id';
 import { CURRENT_SCHEMA_VERSION } from '../types/schema';
 import { migrate } from './migrations';
-import type { Case, CaseIndexRow, Panel, PeremptoryBudget } from '../types/case';
+import type { Case, CaseIndexRow, Juror, JurorStatus, Panel, PeremptoryBudget } from '../types/case';
 import type { VenireRow } from '../lib/venire-import';
 import { makeEmptyJuror } from '../lib/panel';
 
@@ -122,4 +122,104 @@ export async function populateFirstPanelFromVenire(
     return j;
   });
   await saveCase(c);
+}
+
+export async function advanceToDecision(caseId: string): Promise<void> {
+  const c = await getCase(caseId);
+  if (!c) throw new Error(`Case ${caseId} not found`);
+  const panel = c.panels[c.currentPanelIndex];
+  const seated = panel.jurors.filter(
+    (j) => j.seatIndex != null && (j.identity.name ?? '').trim()
+  );
+  if (seated.length !== 21) {
+    throw new Error('Panel must have 21 named seats before advancing to Decision.');
+  }
+  c.mode = 'decision';
+  await saveCase(c);
+}
+
+export interface StrikeInput {
+  status: JurorStatus;
+  reason: string;
+}
+
+export async function markJurorStrike(
+  caseId: string,
+  jurorId: string,
+  input: StrikeInput
+): Promise<void> {
+  const c = await getCase(caseId);
+  if (!c) throw new Error(`Case ${caseId} not found`);
+
+  if (input.status !== 'kept' && input.status !== 'active') {
+    if (!input.reason.trim()) {
+      throw new Error('A reason is required for every strike or disqualification.');
+    }
+  }
+
+  const panel = c.panels[c.currentPanelIndex];
+  const juror = panel.jurors.find((j) => j.id === jurorId);
+  if (!juror) throw new Error(`Juror ${jurorId} not found in current panel`);
+
+  juror.status = input.status;
+  juror.strikeReason = input.reason.trim() || undefined;
+  juror.updatedAt = new Date().toISOString();
+  await saveCase(c);
+}
+
+export async function finishDecisionsForPanel(caseId: string): Promise<void> {
+  const c = await getCase(caseId);
+  if (!c) throw new Error(`Case ${caseId} not found`);
+  const panel = c.panels[c.currentPanelIndex];
+  const undecided = panel.jurors.filter(
+    (j) => j.status === 'active' && j.seatIndex != null
+  );
+  if (undecided.length > 0) {
+    throw new Error(
+      `Cannot finish decisions — ${undecided.length} undecided juror(s) remain.`
+    );
+  }
+  panel.status = 'decided';
+  panel.decidedAt = new Date().toISOString();
+
+  // Rebuild seatedJurorOrder from all panels in juror creation order
+  const seated = c.panels.flatMap((p) =>
+    p.jurors.filter((j) => j.status === 'kept').map((j) => j.id)
+  );
+  c.seatedJurorOrder = seated;
+
+  const target = c.meta.targetJurors + c.meta.targetAlternates;
+  if (seated.length >= target) {
+    c.mode = 'seated';
+  } else {
+    // Stay in decision mode so the user can start the next panel
+    c.mode = 'decision';
+  }
+  await saveCase(c);
+}
+
+export async function startNextPanel(caseId: string): Promise<void> {
+  const c = await getCase(caseId);
+  if (!c) throw new Error(`Case ${caseId} not found`);
+  const panel = c.panels[c.currentPanelIndex];
+  if (panel.status !== 'decided') {
+    throw new Error('Current panel must be decided before starting a new one.');
+  }
+  const next: Panel = {
+    id: newId(),
+    index: c.panels.length + 1,
+    status: 'questioning',
+    jurors: [],
+    createdAt: new Date().toISOString(),
+  };
+  c.panels.push(next);
+  c.currentPanelIndex = c.panels.length - 1;
+  c.mode = 'questioning';
+  await saveCase(c);
+}
+
+export function seatedJurors(c: Case): Juror[] {
+  return c.panels.flatMap((p) =>
+    p.jurors.filter((j) => j.status === 'kept')
+  );
 }
