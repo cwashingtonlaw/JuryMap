@@ -108,7 +108,7 @@ export default function EditCaseModal({
 
           <section className="space-y-4 pt-4 border-t border-[var(--border-subtle)]">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Seating Layout</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <label className="grid gap-1">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Seats per row</span>
                 <input
@@ -117,17 +117,27 @@ export default function EditCaseModal({
                   max={20}
                   className="w-full rounded-xl border border-[var(--border-default)] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-slate-900 transition-all"
                   value={draft.customColumns ?? ''}
-                  onChange={(e) => setDraft({ ...draft, customColumns: parseInt(e.target.value) || undefined })}
-                  placeholder="Auto"
+                  onChange={(e) => {
+                    const cols = Math.max(1, parseInt(e.target.value) || 1);
+                    const rows = Math.ceil(draft.venireSize / cols);
+                    setDraft({ ...draft, customColumns: cols, venireSize: cols * rows });
+                  }}
                 />
-                <span className="text-xs text-slate-400">
-                  {(() => {
-                    const vs = draft.venireSize;
-                    const cols = draft.customColumns || (vs <= 6 ? 6 : vs <= 12 ? 6 : vs === 21 ? 7 : vs <= 24 ? 6 : 10);
-                    const rows = Math.ceil(vs / cols);
-                    return `${cols} seats/row = ${rows} row${rows !== 1 ? 's' : ''}`;
-                  })()}
-                </span>
+              </label>
+              <label className="grid gap-1">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Number of rows</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  className="w-full rounded-xl border border-[var(--border-default)] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-slate-900 transition-all"
+                  value={Math.ceil(draft.venireSize / (draft.customColumns || 7))}
+                  onChange={(e) => {
+                    const rows = Math.max(1, parseInt(e.target.value) || 1);
+                    const cols = draft.customColumns || 7;
+                    setDraft({ ...draft, venireSize: cols * rows });
+                  }}
+                />
               </label>
               <label className="grid gap-1">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Aisle spacers</span>
@@ -145,7 +155,9 @@ export default function EditCaseModal({
                 />
               </label>
             </div>
-            <span className="text-xs text-slate-400">Custom grid width and optional aisle gaps</span>
+            <div className="text-xs text-slate-400">
+              {draft.customColumns || 7} seats/row &times; {Math.ceil(draft.venireSize / (draft.customColumns || 7))} rows = {draft.venireSize} total venire seats
+            </div>
           </section>
 
           {onDelete && (

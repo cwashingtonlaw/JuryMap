@@ -51,17 +51,24 @@ describe('CaseSetup', () => {
     expect(defenseInput.value).toBe('12');
   });
 
-  it('persists venireSize when the user picks 6', async () => {
+  it('persists venireSize computed from seats per row × number of rows', async () => {
     const user = userEvent.setup();
     renderAt('/cases/new');
     await user.type(screen.getByLabelText(/case name/i), 'Small Panel');
-    await user.selectOptions(screen.getByLabelText(/venire size/i), '6');
+    // Set seats per row = 3, rows = 2 → venireSize = 6
+    const seatsInput = screen.getByLabelText(/seats per row/i) as HTMLInputElement;
+    const rowsInput = screen.getByLabelText(/number of rows/i) as HTMLInputElement;
+    await user.tripleClick(seatsInput);
+    await user.keyboard('3');
+    await user.tripleClick(rowsInput);
+    await user.keyboard('2');
     await user.click(screen.getByRole('button', { name: /create case/i }));
     expect(await screen.findByTestId('questioning')).toBeInTheDocument();
     // Verify via the DB
-    const rows = await (await import('../db/repository')).listCases({ includeArchived: false });
-    const latest = rows[0];
+    const dbRows = await (await import('../db/repository')).listCases({ includeArchived: false });
+    const latest = dbRows[0];
     const loaded = await (await import('../db/repository')).getCase(latest.id);
     expect(loaded!.meta.venireSize).toBe(6);
+    expect(loaded!.meta.customColumns).toBe(3);
   });
 });

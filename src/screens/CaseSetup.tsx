@@ -20,9 +20,10 @@ export default function CaseSetup() {
   const [preset, setPreset] = useState<PresetKey>('felony-12');
   const [defensePer, setDefensePer] = useState(12);
   const [statePer, setStatePer] = useState(12);
-  const [venireSize, setVenireSize] = useState(21);
+  const [seatsPerRow, setSeatsPerRow] = useState(7);
+  const [numRows, setNumRows] = useState(3);
+  const venireSize = seatsPerRow * numRows;
   const [seatLayout, setSeatLayout] = useState<'rows' | 'snake'>('rows');
-  const [customColumns, setCustomColumns] = useState<number | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [venireText, setVenireText] = useState('');
   const [venireFeedback, setVenireFeedback] = useState<string | null>(null);
@@ -58,7 +59,7 @@ export default function CaseSetup() {
       targetAlternates,
       peremptoryBudget: { defense: defensePer, state: statePer },
       venireSize,
-      customColumns,
+      customColumns: seatsPerRow,
       seatLayout,
       customFactors: customFactors
         .filter((f) => f.label.trim())
@@ -220,20 +221,28 @@ export default function CaseSetup() {
           <legend className="text-sm font-medium px-1">
             Venire &amp; seating
           </legend>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <label className="grid gap-1">
-              <span className="text-sm">Venire size</span>
-              <select
-                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-2 py-2 text-sm"
-                value={venireSize}
-                onChange={(e) => setVenireSize(parseInt(e.target.value) || 21)}
-              >
-                <option value={6}>6 (small panel)</option>
-                <option value={12}>12</option>
-                <option value={21}>21 (LA default)</option>
-                <option value={60}>60</option>
-                <option value={100}>100</option>
-              </select>
+              <span className="text-sm">Seats per row</span>
+              <input
+                type="number"
+                min={1}
+                max={20}
+                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
+                value={seatsPerRow}
+                onChange={(e) => setSeatsPerRow(Math.max(1, parseInt(e.target.value) || 1))}
+              />
+            </label>
+            <label className="grid gap-1">
+              <span className="text-sm">Number of rows</span>
+              <input
+                type="number"
+                min={1}
+                max={20}
+                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
+                value={numRows}
+                onChange={(e) => setNumRows(Math.max(1, parseInt(e.target.value) || 1))}
+              />
             </label>
             <label className="grid gap-1">
               <span className="text-sm">Seat layout</span>
@@ -248,27 +257,9 @@ export default function CaseSetup() {
                 <option value="snake">Snake (alternating direction)</option>
               </select>
             </label>
-            <label className="grid gap-1">
-              <span className="text-sm">Seats per row</span>
-              <input
-                type="number"
-                min={1}
-                max={20}
-                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-2 py-2 text-sm"
-                value={customColumns ?? ''}
-                onChange={(e) =>
-                  setCustomColumns(parseInt(e.target.value) || undefined)
-                }
-                placeholder="Auto"
-              />
-              <span className="text-xs text-[var(--text-secondary)]">
-                {(() => {
-                  const cols = customColumns || (venireSize <= 6 ? 6 : venireSize <= 12 ? 6 : venireSize === 21 ? 7 : venireSize <= 24 ? 6 : 10);
-                  const rows = Math.ceil(venireSize / cols);
-                  return `${cols} seats/row = ${rows} row${rows !== 1 ? 's' : ''}`;
-                })()}
-              </span>
-            </label>
+          </div>
+          <div className="text-sm text-[var(--text-secondary)] font-medium">
+            {seatsPerRow} seats/row &times; {numRows} rows = {venireSize} total venire seats
           </div>
           <label className="grid gap-1">
             <span className="text-sm">Aisle spacers after columns (optional)</span>
