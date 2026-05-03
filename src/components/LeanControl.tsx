@@ -24,7 +24,7 @@ export default function LeanControl({ value, onChange }: Props) {
                 : v > 0
                 ? 'bg-emerald-700 text-white'
                 : 'bg-slate-700 text-white'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200')
+              : 'bg-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--border-default)]')
           }
           aria-label={`Set lean to ${v}`}
         >

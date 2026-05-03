@@ -16,7 +16,7 @@ interface Props {
   aisleAfterColumns?: number[];   // Insert visual spacers after these 1-based column indices
 }
 
-function defaultColumnsFor(size: number): number {
+export function defaultColumnsFor(size: number): number {
   if (size <= 6) return 6;
   if (size <= 12) return 6;
   if (size === 21) return 7;

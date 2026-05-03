@@ -268,7 +268,7 @@ export default function DrawingCanvas({
                   'flex items-center justify-center w-7 h-7 rounded border transition-colors ' +
                   (activeWidth === w.value
                     ? 'bg-slate-800 border-slate-800 text-white'
-                    : 'border-slate-300 hover:border-slate-500')
+                    : 'border-[var(--border-default)] hover:border-slate-500')
                 }
               >
                 <div
@@ -289,7 +289,7 @@ export default function DrawingCanvas({
               type="button"
               onClick={undo}
               disabled={strokes.length === 0}
-              className="text-xs px-2 py-1 rounded border border-slate-300 text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="text-xs px-2 py-1 rounded border border-[var(--border-default)] text-[var(--text-secondary)] hover:bg-[var(--border-subtle)] disabled:opacity-40 disabled:cursor-not-allowed"
             >
               ↩ Undo
             </button>
@@ -307,14 +307,14 @@ export default function DrawingCanvas({
 
       {/* Canvas */}
       <div
-        className="relative rounded-lg overflow-hidden border border-slate-300"
+        className="relative rounded-lg overflow-hidden border border-[var(--border-default)]"
         style={{ width: canvasWidth, maxWidth: '100%' }}
       >
         {/* Paper texture background */}
         <div
           className="absolute inset-0"
           style={{
-            background: '#fdfcf7',
+            background: 'var(--card-paper)',
             backgroundImage:
               'repeating-linear-gradient(transparent, transparent 27px, #e2e8f040 27px, #e2e8f040 28px)',
           }}

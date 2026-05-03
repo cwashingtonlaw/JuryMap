@@ -27,7 +27,7 @@ export default function FlagChips({ flags, onToggle }: Props) {
             'text-xs px-2 py-1 rounded-full border ' +
             (flags[k].value
               ? 'bg-amber-100 border-amber-400 text-amber-800'
-              : 'bg-white border-slate-300 text-slate-500')
+              : 'bg-[var(--bg-surface)] border-[var(--border-default)] text-[var(--text-secondary)]')
           }
         >
           {flags[k].value ? '✓ ' : ''}

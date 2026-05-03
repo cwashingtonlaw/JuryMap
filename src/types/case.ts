@@ -61,6 +61,11 @@ export interface JurorFlags {
   hardship: FlagEntry;
 }
 
+export interface QuestionnaireEntry {
+  question: string;
+  answer: string;
+}
+
 export interface SeatMove {
   at: string; // ISO timestamp
   fromSeat: number | null;
@@ -121,6 +126,8 @@ export interface Juror {
   };
   reactions: ReactionEntry[];
   strikePriority: StrikePriority;
+
+  questionnaire?: QuestionnaireEntry[];
 
   status: JurorStatus;
   disqualificationReason?: string;

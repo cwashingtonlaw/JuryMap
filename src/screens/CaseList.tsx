@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import { listCases, archiveCase, unarchiveCase } from '../db/repository';
+import { listCases, archiveCase, unarchiveCase, getCase } from '../db/repository';
 import { importCaseFromFile } from '../db/repository';
 import type { CaseIndexRow } from '../types/case';
-import { openJuryFile } from '../lib/files';
+import { openJuryFile, saveJuryFile } from '../lib/files';
+import { serializeCase } from '../lib/juryfile';
 import { shouldShowInstallPrompt, isStandalonePwa } from '../lib/platform';
 import ThemeToggle from '../components/ThemeToggle';
 
@@ -54,6 +55,18 @@ export default function CaseList() {
     if (next) await archiveCase(id);
     else await unarchiveCase(id);
     await refresh();
+  }
+
+  async function exportCase(id: string) {
+    const c = await getCase(id);
+    if (!c) return;
+    const name =
+      (c.meta.name || 'case')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '') + '.jury';
+    const text = serializeCase(c, 'jury-selection-app/0.2.0');
+    await saveJuryFile(name, text);
   }
 
   if (rows === null) return <div className="p-8 text-slate-500">Loading…</div>;
@@ -142,6 +155,13 @@ export default function CaseList() {
                     Last edited {new Date(r.updatedAt).toLocaleString()}
                   </div>
                 </Link>
+                <button
+                  type="button"
+                  onClick={() => exportCase(r.id)}
+                  className="rounded-md border border-[var(--border-default)] px-3 text-sm text-slate-600 hover:bg-slate-100"
+                >
+                  Export
+                </button>
                 <button
                   type="button"
                   onClick={() => toggleArchive(r.id, !r.archived)}

@@ -16,7 +16,7 @@ function c(): Case {
     meta: {
       name: 'State v. Test',
       docketNumber: '12-345',
-      parish: 'Calcasieu',
+      location: 'Calcasieu',
       judge: 'Hon. Jones',
       targetJurors: 12,
       targetAlternates: 2,

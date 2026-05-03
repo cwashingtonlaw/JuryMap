@@ -1,9 +1,30 @@
-import type { Juror, Lean, CustomFactor, PartyRating } from '../types/case';
+import { useState } from 'react';
+import type { Juror, Lean, CustomFactor, PartyRating, QuestionnaireEntry } from '../types/case';
 import { RACE_LABELS, GENDER_LABELS, MARITAL_LABELS } from '../types/demographics';
 import LeanControl from './LeanControl';
 import FlagChips from './FlagChips';
 import FactorScores from './FactorScores';
 import DrawingCanvas from './DrawingCanvas';
+
+function parseQAPaste(text: string): QuestionnaireEntry[] {
+  const entries: QuestionnaireEntry[] = [];
+  const blocks = text.split(/\n\s*\n/);
+  for (const block of blocks) {
+    const lines = block.trim().split('\n');
+    let question = '';
+    let answer = '';
+    for (const line of lines) {
+      const qMatch = line.match(/^Q:\s*(.+)/i);
+      const aMatch = line.match(/^A:\s*(.+)/i);
+      if (qMatch) question = qMatch[1].trim();
+      else if (aMatch) answer = aMatch[1].trim();
+    }
+    if (question && answer) {
+      entries.push({ question, answer });
+    }
+  }
+  return entries;
+}
 
 interface Props {
   juror: Juror;
@@ -26,7 +47,7 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
           Identity
         </legend>
         <input
-          className="rounded-md border border-slate-300 px-3 py-2"
+          className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2"
           placeholder="Name"
           value={juror.identity.name}
           onChange={(e) =>
@@ -37,7 +58,7 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
         />
         <div className="grid grid-cols-3 gap-2">
           <input
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
             placeholder="Juror #"
             value={juror.identity.jurorNumber ?? ''}
             onChange={(e) =>
@@ -48,7 +69,7 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
           />
           <input
             type="number"
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
             placeholder="Age"
             value={juror.identity.age ?? ''}
             onChange={(e) =>
@@ -58,7 +79,7 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
             }
           />
           <input
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
             placeholder="Zip"
             value={juror.identity.zip ?? ''}
             onChange={(e) =>
@@ -76,7 +97,7 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
         </legend>
         <div className="grid grid-cols-3 gap-2">
           <select
-            className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-2 py-2 text-sm"
             value={juror.demographics.race}
             onChange={(e) =>
               onChange((d) => {
@@ -91,7 +112,7 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
             ))}
           </select>
           <select
-            className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-2 py-2 text-sm"
             value={juror.demographics.gender}
             onChange={(e) =>
               onChange((d) => {
@@ -106,7 +127,7 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
             ))}
           </select>
           <select
-            className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-2 py-2 text-sm"
             value={juror.demographics.maritalStatus}
             onChange={(e) =>
               onChange((d) => {
@@ -129,7 +150,7 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
         </legend>
         <div className="grid grid-cols-2 gap-2">
           <input
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
             placeholder="Employer"
             value={juror.employment.employer ?? ''}
             onChange={(e) =>
@@ -139,7 +160,7 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
             }
           />
           <input
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
             placeholder="Job title"
             value={juror.employment.jobTitle ?? ''}
             onChange={(e) =>
@@ -264,7 +285,7 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
           </legend>
           {/* Text ↔ Handwriting toggle */}
           {!readOnly && (
-            <div className="flex rounded-md border border-slate-300 overflow-hidden text-xs font-medium">
+            <div className="flex rounded-md border border-[var(--border-default)] overflow-hidden text-xs font-medium">
               <button
                 type="button"
                 onClick={() =>
@@ -276,7 +297,7 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
                   'px-3 py-1 transition-colors ' +
                   ((juror.notesMode ?? 'text') === 'text'
                     ? 'bg-slate-800 text-white'
-                    : 'bg-white text-slate-600 hover:bg-slate-50')
+                    : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--border-subtle)]')
                 }
               >
                 Text
@@ -289,10 +310,10 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
                   })
                 }
                 className={
-                  'px-3 py-1 border-l border-slate-300 transition-colors ' +
+                  'px-3 py-1 border-l border-[var(--border-default)] transition-colors ' +
                   ((juror.notesMode ?? 'text') === 'drawing'
                     ? 'bg-slate-800 text-white'
-                    : 'bg-white text-slate-600 hover:bg-slate-50')
+                    : 'bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:bg-[var(--border-subtle)]')
                 }
               >
                 ✍ Handwriting
@@ -304,7 +325,7 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
         {(juror.notesMode ?? 'text') === 'text' ? (
           <textarea
             rows={6}
-            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
             value={juror.notes}
             disabled={readOnly}
             onChange={(e) =>
@@ -328,6 +349,157 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
           />
         )}
       </fieldset>
+
+      <QuestionnaireSection
+        entries={juror.questionnaire ?? []}
+        readOnly={readOnly}
+        onChange={onChange}
+      />
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Questionnaire section                                              */
+/* ------------------------------------------------------------------ */
+
+function QuestionnaireSection({
+  entries,
+  readOnly,
+  onChange,
+}: {
+  entries: QuestionnaireEntry[];
+  readOnly?: boolean;
+  onChange: (mutator: (draft: Juror) => void) => void;
+}) {
+  const [newQ, setNewQ] = useState('');
+  const [newA, setNewA] = useState('');
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+
+  function addEntry() {
+    const q = newQ.trim();
+    const a = newA.trim();
+    if (!q || !a) return;
+    onChange((d) => {
+      d.questionnaire = [...(d.questionnaire ?? []), { question: q, answer: a }];
+    });
+    setNewQ('');
+    setNewA('');
+  }
+
+  function removeEntry(idx: number) {
+    onChange((d) => {
+      const list = [...(d.questionnaire ?? [])];
+      list.splice(idx, 1);
+      d.questionnaire = list;
+    });
+  }
+
+  function handlePaste() {
+    const parsed = parseQAPaste(pasteText);
+    if (parsed.length === 0) return;
+    onChange((d) => {
+      d.questionnaire = [...(d.questionnaire ?? []), ...parsed];
+    });
+    setPasteText('');
+    setPasteOpen(false);
+  }
+
+  return (
+    <fieldset className="grid gap-2" disabled={readOnly}>
+      <div className="flex items-center justify-between">
+        <legend className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+          Questionnaire ({entries.length})
+        </legend>
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={() => setPasteOpen(!pasteOpen)}
+            className="text-xs font-medium text-blue-600 hover:text-blue-800"
+          >
+            {pasteOpen ? 'Cancel' : 'Paste Q&A'}
+          </button>
+        )}
+      </div>
+
+      {pasteOpen && (
+        <div className="grid gap-2 rounded-md border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800 p-3">
+          <textarea
+            rows={6}
+            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm font-mono"
+            value={pasteText}
+            onChange={(e) => setPasteText(e.target.value)}
+            placeholder={"Q: What is your occupation?\nA: Teacher\n\nQ: Have you ever served on a jury?\nA: Yes, twice"}
+          />
+          <button
+            type="button"
+            onClick={handlePaste}
+            className="justify-self-end rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+          >
+            Import
+          </button>
+        </div>
+      )}
+
+      {entries.length > 0 && (
+        <ul className="grid gap-2">
+          {entries.map((entry, i) => (
+            <li
+              key={i}
+              className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="font-semibold text-slate-700 dark:text-slate-300">
+                    {entry.question}
+                  </div>
+                  <div className="text-slate-600 dark:text-slate-400 mt-0.5">
+                    {entry.answer}
+                  </div>
+                </div>
+                {!readOnly && (
+                  <button
+                    type="button"
+                    onClick={() => removeEntry(i)}
+                    className="shrink-0 text-slate-400 hover:text-red-600 text-xs leading-none mt-0.5"
+                    title="Remove"
+                  >
+                    x
+                  </button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {!readOnly && (
+        <div className="grid gap-1.5">
+          <input
+            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-1.5 text-sm"
+            placeholder="Question"
+            value={newQ}
+            onChange={(e) => setNewQ(e.target.value)}
+          />
+          <input
+            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-1.5 text-sm"
+            placeholder="Answer"
+            value={newA}
+            onChange={(e) => setNewA(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') addEntry();
+            }}
+          />
+          <button
+            type="button"
+            onClick={addEntry}
+            className="justify-self-start rounded-md border border-[var(--border-default)] px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
+          >
+            Add
+          </button>
+        </div>
+      )}
+    </fieldset>
   );
 }

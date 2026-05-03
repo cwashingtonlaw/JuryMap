@@ -28,14 +28,14 @@ export default function ReactionLog({ juror, onRecord }: Props) {
   }
 
   return (
-    <div className="mt-6 border-t border-slate-200 pt-4">
+    <div className="mt-6 border-t border-[var(--border-default)] pt-4">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">
         Reactions / observations
       </h3>
       <div className="grid gap-2">
         <textarea
           rows={2}
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+          className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
           placeholder="e.g., 'crossed arms during burden-of-proof questioning' — Enter to record."
           value={draft}
           onChange={(e) => setDraft(e.target.value)}

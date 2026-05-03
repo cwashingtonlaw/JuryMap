@@ -91,7 +91,7 @@ export default function CaseSetup() {
         <label className="grid gap-1">
           <span className="text-sm font-medium">Case name</span>
           <input
-            className="rounded-md border border-slate-300 px-3 py-2"
+            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="State v. Smith"
@@ -102,7 +102,7 @@ export default function CaseSetup() {
           <label className="grid gap-1">
             <span className="text-sm font-medium">Docket #</span>
             <input
-              className="rounded-md border border-slate-300 px-3 py-2"
+              className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2"
               value={docketNumber}
               onChange={(e) => setDocket(e.target.value)}
             />
@@ -111,7 +111,7 @@ export default function CaseSetup() {
             <span className="text-sm font-medium">Trial date</span>
             <input
               type="date"
-              className="rounded-md border border-slate-300 px-3 py-2"
+              className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2"
               value={trialDate}
               onChange={(e) => setTrialDate(e.target.value)}
             />
@@ -119,7 +119,7 @@ export default function CaseSetup() {
           <label className="grid gap-1">
             <span className="text-sm font-medium">Location / Venue</span>
             <input
-              className="rounded-md border border-slate-300 px-3 py-2"
+              className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               placeholder="e.g. Lake Charles"
@@ -128,14 +128,14 @@ export default function CaseSetup() {
           <label className="grid gap-1">
             <span className="text-sm font-medium">Judge</span>
             <input
-              className="rounded-md border border-slate-300 px-3 py-2"
+              className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2"
               value={judge}
               onChange={(e) => setJudge(e.target.value)}
             />
           </label>
         </div>
 
-        <fieldset className="grid gap-3 border border-slate-200 rounded-md p-4">
+        <fieldset className="grid gap-3 border border-[var(--border-default)] rounded-md p-4">
           <legend className="text-sm font-medium px-1">Jury composition</legend>
           <div className="grid grid-cols-2 gap-4">
             <label className="grid gap-1">
@@ -144,7 +144,7 @@ export default function CaseSetup() {
                 type="number"
                 min={6}
                 max={12}
-                className="rounded-md border border-slate-300 px-3 py-2"
+                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2"
                 value={targetJurors}
                 onChange={(e) => setTargetJurors(parseInt(e.target.value) || 12)}
               />
@@ -155,7 +155,7 @@ export default function CaseSetup() {
                 type="number"
                 min={0}
                 max={6}
-                className="rounded-md border border-slate-300 px-3 py-2"
+                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2"
                 value={targetAlternates}
                 onChange={(e) =>
                   setTargetAlternates(parseInt(e.target.value) || 0)
@@ -165,12 +165,12 @@ export default function CaseSetup() {
           </div>
         </fieldset>
 
-        <fieldset className="grid gap-3 border border-slate-200 rounded-md p-4">
+        <fieldset className="grid gap-3 border border-[var(--border-default)] rounded-md p-4">
           <legend className="text-sm font-medium px-1">Peremptory strikes</legend>
           <label className="grid gap-1">
             <span className="text-sm">Peremptory preset</span>
             <select
-              className="rounded-md border border-slate-300 px-3 py-2"
+              className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2"
               value={preset}
               onChange={(e) => onPresetChange(e.target.value as PresetKey)}
             >
@@ -187,7 +187,7 @@ export default function CaseSetup() {
                 type="number"
                 min={0}
                 max={24}
-                className="rounded-md border border-slate-300 px-3 py-2"
+                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2"
                 value={defensePer}
                 onChange={(e) => {
                   setDefensePer(parseInt(e.target.value) || 0);
@@ -201,7 +201,7 @@ export default function CaseSetup() {
                 type="number"
                 min={0}
                 max={24}
-                className="rounded-md border border-slate-300 px-3 py-2"
+                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2"
                 value={statePer}
                 onChange={(e) => {
                   setStatePer(parseInt(e.target.value) || 0);
@@ -212,7 +212,7 @@ export default function CaseSetup() {
           </div>
         </fieldset>
 
-        <fieldset className="grid gap-3 border border-slate-200 rounded-md p-4">
+        <fieldset className="grid gap-3 border border-[var(--border-default)] rounded-md p-4">
           <legend className="text-sm font-medium px-1">
             Venire &amp; seating
           </legend>
@@ -220,7 +220,7 @@ export default function CaseSetup() {
             <label className="grid gap-1">
               <span className="text-sm">Venire size</span>
               <select
-                className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-2 py-2 text-sm"
                 value={venireSize}
                 onChange={(e) => setVenireSize(parseInt(e.target.value) || 21)}
               >
@@ -234,7 +234,7 @@ export default function CaseSetup() {
             <label className="grid gap-1">
               <span className="text-sm">Seat layout</span>
               <select
-                className="rounded-md border border-slate-300 px-2 py-2 text-sm"
+                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-2 py-2 text-sm"
                 value={seatLayout}
                 onChange={(e) =>
                   setSeatLayout(e.target.value as 'rows' | 'snake')
@@ -248,7 +248,7 @@ export default function CaseSetup() {
           <label className="grid gap-1">
             <span className="text-sm">Aisle spacers after columns (optional)</span>
             <input
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
               value={aisleText}
               onChange={(e) => setAisleText(e.target.value)}
               placeholder="e.g. 3, 5"
@@ -259,7 +259,7 @@ export default function CaseSetup() {
           </label>
         </fieldset>
 
-        <fieldset className="grid gap-3 border border-slate-200 rounded-md p-4">
+        <fieldset className="grid gap-3 border border-[var(--border-default)] rounded-md p-4">
           <div className="flex items-center justify-between">
             <legend className="text-sm font-medium px-1">Custom factors (max 3)</legend>
             {customFactors.length < 3 && (
@@ -281,7 +281,7 @@ export default function CaseSetup() {
                 <label className="grid gap-1 flex-1">
                   <span className="text-[10px] uppercase text-slate-500 font-semibold">Label</span>
                   <input
-                    className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
                     placeholder="e.g. Leadership"
                     value={f.label}
                     onChange={(e) => {
@@ -294,7 +294,7 @@ export default function CaseSetup() {
                 <label className="grid gap-1 w-20">
                   <span className="text-[10px] uppercase text-slate-500 font-semibold">Abbr</span>
                   <input
-                    className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                    className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
                     placeholder="LDR"
                     maxLength={6}
                     value={f.abbr}
@@ -323,7 +323,7 @@ export default function CaseSetup() {
           </div>
         </fieldset>
 
-        <fieldset className="grid gap-3 border border-slate-200 rounded-md p-4">
+        <fieldset className="grid gap-3 border border-[var(--border-default)] rounded-md p-4">
           <legend className="text-sm font-medium px-1">
             Venire list (optional)
           </legend>
@@ -357,7 +357,7 @@ export default function CaseSetup() {
               </p>
               <textarea
                 rows={6}
-                className="rounded-md border border-slate-300 px-3 py-2 font-mono text-sm"
+                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 font-mono text-sm"
                 value={venireText}
                 onChange={(e) => setVenireText(e.target.value)}
                 placeholder={`name,juror_number\nAlice Jones,101\nBob Smith,102`}

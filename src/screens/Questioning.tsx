@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
 import { advanceToDecision } from '../db/repository';
-import SeatGrid from '../components/SeatGrid';
+import SeatGrid, { defaultColumnsFor } from '../components/SeatGrid';
 import JurorDrawer from '../components/JurorDrawer';
 import DisqualifyModal, {
   type DisqualifyKind,
@@ -93,20 +93,25 @@ export default function Questioning() {
         }
       },
       ArrowRight: () => {
+        const max = activeCase?.meta.venireSize ?? 21;
         if (openSeat == null) setOpenSeat(1);
-        else setOpenSeat(Math.min(21, openSeat + 1));
+        else setOpenSeat(Math.min(max, openSeat + 1));
       },
       ArrowLeft: () => {
         if (openSeat == null) return;
         setOpenSeat(Math.max(1, openSeat - 1));
       },
       ArrowDown: () => {
+        const max = activeCase?.meta.venireSize ?? 21;
+        const cols = defaultColumnsFor(max);
         if (openSeat == null) setOpenSeat(1);
-        else setOpenSeat(Math.min(21, openSeat + 7));
+        else setOpenSeat(Math.min(max, openSeat + cols));
       },
       ArrowUp: () => {
+        const max = activeCase?.meta.venireSize ?? 21;
+        const cols = defaultColumnsFor(max);
         if (openSeat == null) return;
-        setOpenSeat(Math.max(1, openSeat - 7));
+        setOpenSeat(Math.max(1, openSeat - cols));
       },
     },
     true
