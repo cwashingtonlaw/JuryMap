@@ -178,6 +178,7 @@ export default function Questioning() {
             jurors={panel.jurors}
             venireSize={activeCase.meta.venireSize}
             layout={activeCase.meta.seatLayout}
+            columns={activeCase.meta.customColumns}
             customFactors={activeCase.meta.customFactors}
             aisleAfterColumns={activeCase.meta.aisleAfterColumns}
           />
@@ -371,13 +372,14 @@ export default function Questioning() {
       )}
 
       <div className="flex-1 min-h-0 p-4">
-        <SeatGrid
-          jurors={panel.jurors}
-          venireSize={activeCase.meta.venireSize}
-          layout={activeCase.meta.seatLayout}
-          customFactors={activeCase.meta.customFactors}
-          aisleAfterColumns={activeCase.meta.aisleAfterColumns}
-          selectedSeats={groupMode ? groupSelectedSeats : undefined}
+          <SeatGrid
+            jurors={panel.jurors}
+            venireSize={activeCase.meta.venireSize}
+            layout={activeCase.meta.seatLayout}
+            columns={activeCase.meta.customColumns}
+            customFactors={activeCase.meta.customFactors}
+            aisleAfterColumns={activeCase.meta.aisleAfterColumns}
+            selectedSeats={groupMode ? groupSelectedSeats : undefined}
           onSeatClick={groupMode
             ? (s) => {
                 // In group mode: toggle seat selection instead of opening drawer

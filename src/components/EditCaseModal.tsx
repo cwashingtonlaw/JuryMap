@@ -108,22 +108,44 @@ export default function EditCaseModal({
 
           <section className="space-y-4 pt-4 border-t border-[var(--border-subtle)]">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Seating Layout</h3>
-            <label className="grid gap-1">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Aisle spacers after columns</span>
-              <input
-                className="w-full rounded-xl border border-[var(--border-default)] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-slate-900 transition-all"
-                value={(draft.aisleAfterColumns ?? []).join(', ')}
-                onChange={(e) => {
-                  const vals = e.target.value
-                    .split(',')
-                    .map((s) => parseInt(s.trim()))
-                    .filter((n) => !isNaN(n) && n > 0);
-                  setDraft({ ...draft, aisleAfterColumns: vals });
-                }}
-                placeholder="e.g. 3, 5"
-              />
-              <span className="text-xs text-slate-400">Comma-separated 1-based column numbers</span>
-            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="grid gap-1">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Seats per row</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  className="w-full rounded-xl border border-[var(--border-default)] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-slate-900 transition-all"
+                  value={draft.customColumns ?? ''}
+                  onChange={(e) => setDraft({ ...draft, customColumns: parseInt(e.target.value) || undefined })}
+                  placeholder="Auto"
+                />
+                <span className="text-xs text-slate-400">
+                  {(() => {
+                    const vs = draft.venireSize;
+                    const cols = draft.customColumns || (vs <= 6 ? 6 : vs <= 12 ? 6 : vs === 21 ? 7 : vs <= 24 ? 6 : 10);
+                    const rows = Math.ceil(vs / cols);
+                    return `${cols} seats/row = ${rows} row${rows !== 1 ? 's' : ''}`;
+                  })()}
+                </span>
+              </label>
+              <label className="grid gap-1">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Aisle spacers</span>
+                <input
+                  className="w-full rounded-xl border border-[var(--border-default)] px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-slate-900 transition-all"
+                  value={(draft.aisleAfterColumns ?? []).join(', ')}
+                  onChange={(e) => {
+                    const vals = e.target.value
+                      .split(',')
+                      .map((s) => parseInt(s.trim()))
+                      .filter((n) => !isNaN(n) && n > 0);
+                    setDraft({ ...draft, aisleAfterColumns: vals });
+                  }}
+                  placeholder="e.g. 3, 5"
+                />
+              </label>
+            </div>
+            <span className="text-xs text-slate-400">Custom grid width and optional aisle gaps</span>
           </section>
 
           {onDelete && (
