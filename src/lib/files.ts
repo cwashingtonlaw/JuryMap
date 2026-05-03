@@ -1,12 +1,13 @@
-// Browser + Tauri file I/O wrapper.
+// Multi-runtime file I/O wrapper.
 //
 // Priority order:
 //   1. Tauri native dialogs (when running inside the .app bundle)
-//   2. Chromium's File System Access API (macOS Chrome/Edge, Desktop Edge)
-//   3. Download + <input type="file"> fallback (Safari, iPad)
+//   2. Capacitor Share/Filesystem (when running inside iOS .app)
+//   3. Chromium's File System Access API (macOS Chrome/Edge, Desktop Edge)
+//   4. Download + <input type="file"> fallback (Safari, iPad PWA)
 
 export interface SaveResult {
-  method: 'tauri' | 'fsa' | 'download';
+  method: 'tauri' | 'capacitor' | 'fsa' | 'download';
 }
 
 declare global {
@@ -19,6 +20,13 @@ declare global {
 
 function isTauri(): boolean {
   return typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
+}
+
+function isCapacitor(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    !!(window as any).Capacitor?.isNativePlatform?.()
+  );
 }
 
 function hasFileSystemAccess(): boolean {
@@ -56,7 +64,32 @@ export async function saveJuryFile(
     }
   }
 
-  // 2. Chromium File System Access API
+  // 2. Capacitor: write to app Documents dir, then share
+  if (isCapacitor()) {
+    try {
+      const { Filesystem, Directory } = await import('@capacitor/filesystem');
+      const { Share } = await import('@capacitor/share');
+      await Filesystem.writeFile({
+        path: suggestedName,
+        data: text,
+        directory: Directory.Documents,
+        encoding: 'utf8' as any,
+      });
+      const uri = await Filesystem.getUri({
+        path: suggestedName,
+        directory: Directory.Documents,
+      });
+      await Share.share({
+        title: suggestedName,
+        url: uri.uri,
+      });
+      return { method: 'capacitor' };
+    } catch (e) {
+      console.error('Capacitor save failed, falling back:', e);
+    }
+  }
+
+  // 3. Chromium File System Access API
   if (hasFileSystemAccess()) {
     try {
       const handle = (await (
@@ -85,7 +118,7 @@ export async function saveJuryFile(
     }
   }
 
-  // 3. Download fallback
+  // 4. Download fallback
   const blob = new Blob([text], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -121,7 +154,10 @@ export async function openJuryFile(): Promise<string | null> {
     }
   }
 
-  // 2. Chromium File System Access API
+  // 2. Capacitor: use <input type="file"> fallback on iOS (same as #4 below)
+  // Capacitor's WebView supports the file input picker natively.
+
+  // 3. Chromium File System Access API
   if (hasFileSystemAccess()) {
     try {
       const [handle] = (await (
