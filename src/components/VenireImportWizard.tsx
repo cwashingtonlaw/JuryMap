@@ -101,7 +101,7 @@ export default function VenireImportWizard({ onImport, onCancel }: Props) {
               <textarea
                 rows={10}
                 autoFocus
-                className="rounded-md border border-slate-300 px-3 py-2 font-mono text-sm w-full"
+                className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 font-mono text-sm w-full"
                 value={rawText}
                 onChange={(e) => setRawText(e.target.value)}
                 placeholder={`Full Name,Juror No.,Age,Race,Gender\nAlice Jones,101,34,White,Female\nBob Smith,102,42,Black,Male`}
@@ -123,7 +123,7 @@ export default function VenireImportWizard({ onImport, onCancel }: Props) {
                         <th key={i} className="border border-[var(--border-default)] px-3 py-1.5 bg-[var(--bg-body)] text-left">
                           <div className="text-xs text-slate-500 mb-1 font-normal">{h}</div>
                           <select
-                            className="text-sm border border-slate-300 rounded px-2 py-1 w-full"
+                            className="text-sm border border-[var(--border-default)] bg-[var(--bg-surface)] rounded px-2 py-1 w-full"
                             value={columnMap[i] ?? 'skip'}
                             onChange={(e) => {
                               const next = [...columnMap];

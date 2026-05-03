@@ -432,13 +432,19 @@ function QuestionnaireSection({
             onChange={(e) => setPasteText(e.target.value)}
             placeholder={"Q: What is your occupation?\nA: Teacher\n\nQ: Have you ever served on a jury?\nA: Yes, twice"}
           />
-          <button
-            type="button"
-            onClick={handlePaste}
-            className="justify-self-end rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
-          >
-            Import
-          </button>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-slate-500">
+              {pasteText.trim() ? `${parseQAPaste(pasteText).length} Q&A pair(s) detected` : 'Use Q: and A: prefixes'}
+            </span>
+            <button
+              type="button"
+              onClick={handlePaste}
+              disabled={!pasteText.trim() || parseQAPaste(pasteText).length === 0}
+              className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:bg-blue-300"
+            >
+              Import
+            </button>
+          </div>
         </div>
       )}
 
@@ -494,7 +500,8 @@ function QuestionnaireSection({
           <button
             type="button"
             onClick={addEntry}
-            className="justify-self-start rounded-md border border-[var(--border-default)] px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100"
+            disabled={!newQ.trim() || !newA.trim()}
+            className="justify-self-start rounded-md border border-[var(--border-default)] px-3 py-1 text-xs font-medium text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Add
           </button>

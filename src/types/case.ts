@@ -71,7 +71,7 @@ export interface SeatMove {
   fromSeat: number | null;
   toSeat: number | null;
   reason: string;
-  kind: 'replace-in-seat' | 'slide-left' | 'removed';
+  kind: 'replace-in-seat' | 'slide-left' | 'swap' | 'move' | 'removed';
 }
 
 export interface Juror {

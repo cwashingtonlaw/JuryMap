@@ -176,7 +176,7 @@ export function swapSeats(
             reason: target
               ? `swapped with seat ${toSeat}`
               : `moved to seat ${toSeat}`,
-            kind: 'slide-left' as const,
+            kind: target ? 'swap' as const : 'move' as const,
           },
         ],
         updatedAt: now,
@@ -193,7 +193,7 @@ export function swapSeats(
             fromSeat: toSeat,
             toSeat: fromSeat,
             reason: `swapped with seat ${fromSeat}`,
-            kind: 'slide-left' as const,
+            kind: 'swap' as const,
           },
         ],
         updatedAt: now,

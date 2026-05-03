@@ -333,6 +333,17 @@ export default function JuryReportDocument({ activeCase, options }: { activeCase
                     <Text style={styles.v}>{j.notes}</Text>
                   </View>
                 )}
+                {j.questionnaire && j.questionnaire.length > 0 && (
+                  <View style={{ marginTop: 4 }}>
+                    <Text style={{ fontSize: 8, fontWeight: 700, marginBottom: 2 }}>Questionnaire</Text>
+                    {j.questionnaire.map((entry, qi) => (
+                      <View key={qi} style={styles.kv}>
+                        <Text style={{ ...styles.k, fontWeight: 700 }}>{entry.question}</Text>
+                        <Text style={styles.v}>{entry.answer}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
               </View>
             ))}
           </Page>

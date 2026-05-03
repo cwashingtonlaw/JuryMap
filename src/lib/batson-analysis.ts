@@ -242,6 +242,13 @@ export function batsonPatternFlags(c: Case): PatternFlag[] {
           message: `${SIDE_TITLE[side]} has used ${n} of ${total} peremptories against ${GENDER_TITLE[gender] || gender} jurors (${Math.round(share * 100)}%) — J.E.B. gender pattern.`,
         });
       }
+      // Prima facie: ≥ 3 against a single gender by one side (J.E.B. v. Alabama)
+      if (n >= 3) {
+        flags.push({
+          severity: 'alert',
+          message: `${SIDE_TITLE[side]} peremptory count against ${GENDER_TITLE[gender]} jurors is ${n} — a J.E.B. v. Alabama prima facie case may be established.`,
+        });
+      }
     }
   });
 

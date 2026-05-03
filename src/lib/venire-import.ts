@@ -42,6 +42,8 @@ function parseJson(s: string): ParseResult {
         errors.push(`Row ${i + 1}: missing name`);
         return;
       }
+      const raceRaw = (entry.race ?? entry.Race ?? entry.ethnicity ?? '').toString().trim().toLowerCase();
+      const genderRaw = (entry.gender ?? entry.Gender ?? entry.sex ?? '').toString().trim().toLowerCase();
       rows.push({
         name,
         jurorNumber:
@@ -54,6 +56,8 @@ function parseJson(s: string): ParseResult {
             : parseInt(entry.age) || undefined,
         address: entry.address ?? undefined,
         zip: entry.zip?.toString() ?? entry.zipcode?.toString() ?? undefined,
+        race: raceRaw ? (RACE_PARSE[raceRaw] ?? 'unknown') : undefined,
+        gender: genderRaw ? (GENDER_PARSE[genderRaw] ?? 'unknown') : undefined,
       });
     });
     return { rows, errors };
