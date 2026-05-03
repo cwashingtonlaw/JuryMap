@@ -220,14 +220,15 @@ export default function Decision() {
 
       <div className="flex flex-1 min-h-0">
         <div className="flex-1 p-4 min-h-0">
-          <SeatGrid
-            jurors={panel.jurors}
-            venireSize={activeCase.meta.venireSize}
-            layout={activeCase.meta.seatLayout}
-            customFactors={activeCase.meta.customFactors}
-            aisleAfterColumns={activeCase.meta.aisleAfterColumns}
-            showStrikePriority
-            cutoffSeat={calcCutoffSeat(activeCase)}
+            <SeatGrid
+              jurors={panel.jurors}
+              venireSize={activeCase.meta.venireSize}
+              layout={activeCase.meta.seatLayout}
+              columns={activeCase.meta.customColumns}
+              customFactors={activeCase.meta.customFactors}
+              aisleAfterColumns={activeCase.meta.aisleAfterColumns}
+              showStrikePriority
+              cutoffSeat={calcCutoffSeat(activeCase)}
             onSeatClick={(seat) => {
               const j = panel.jurors.find((x) => x.seatIndex === seat);
               if (j) setOpenJurorId(j.id);

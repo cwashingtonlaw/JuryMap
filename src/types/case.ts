@@ -161,6 +161,7 @@ export interface CaseMeta {
   targetAlternates: number;
   peremptoryBudget: PeremptoryBudget;
   venireSize: number;
+  customColumns?: number;
   seatLayout: 'rows' | 'snake';
   /** Attorney-defined rating dimensions, max 3. */
   customFactors: CustomFactor[];

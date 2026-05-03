@@ -19,6 +19,7 @@ export interface CreateCaseInput {
   venireSize?: number;
   seatLayout?: 'rows' | 'snake';
   customFactors?: CustomFactor[];
+  customColumns?: number;
   aisleAfterColumns?: number[];
 }
 
@@ -52,6 +53,7 @@ export async function createCase(input: CreateCaseInput): Promise<Case> {
       targetAlternates: input.targetAlternates ?? 2,
       peremptoryBudget: input.peremptoryBudget ?? { defense: 12, state: 12 },
       venireSize: input.venireSize ?? 21,
+      customColumns: input.customColumns,
       seatLayout: input.seatLayout ?? 'rows',
       customFactors: input.customFactors ?? [],
       aisleAfterColumns: input.aisleAfterColumns ?? [],
