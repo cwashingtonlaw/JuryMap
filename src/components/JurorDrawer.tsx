@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Juror, ReactionEntry } from '../types/case';
+import type { Juror, ReactionEntry, CustomFactor } from '../types/case';
 import JurorFields from './JurorFields';
 import AnalogyLibrary from './AnalogyLibrary';
 import AnalogyPrompter from './AnalogyPrompter';
@@ -8,6 +8,7 @@ import ReactionLog from './ReactionLog';
 
 interface Props {
   juror: Juror;
+  factors?: CustomFactor[];
   readOnly?: boolean;
   onClose: () => void;
   onChange: (mutator: (draft: Juror) => void) => void;
@@ -16,6 +17,7 @@ interface Props {
 
 export default function JurorDrawer({
   juror,
+  factors = [],
   readOnly,
   onClose,
   onChange,
@@ -48,7 +50,7 @@ export default function JurorDrawer({
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="w-[420px] bg-white h-full overflow-y-auto shadow-xl p-5">
+      <div className="w-[420px] bg-[var(--bg-surface)] h-full overflow-y-auto shadow-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">
             Seat {juror.seatIndex ?? '—'}
@@ -61,10 +63,10 @@ export default function JurorDrawer({
           </button>
         </div>
 
-        <JurorFields juror={juror} readOnly={readOnly} onChange={onChange} />
+        <JurorFields juror={juror} factors={factors} readOnly={readOnly} onChange={onChange} />
 
         {!readOnly && (
-          <div className="mt-6 border-t border-slate-200 pt-4 grid gap-2">
+          <div className="mt-6 border-t border-[var(--border-default)] pt-4 grid gap-2">
             <button
               onClick={() => setAnalogyPickerOpen(true)}
               className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-medium hover:bg-slate-50"
@@ -79,7 +81,7 @@ export default function JurorDrawer({
         <ReactionLog juror={juror} onRecord={recordReaction} />
 
         {onDisqualify && juror.seatIndex != null && (
-          <div className="mt-6 border-t border-slate-200 pt-4">
+          <div className="mt-6 border-t border-[var(--border-default)] pt-4">
             <button
               onClick={onDisqualify}
               className="text-sm text-red-700 hover:text-red-900"

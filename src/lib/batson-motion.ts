@@ -29,7 +29,7 @@ export function generateBatsonMotionHtml(
 
   const caption = escapeHtml(c.meta.name);
   const docket = escapeHtml(c.meta.docketNumber ?? '');
-  const parish = escapeHtml(c.meta.parish ?? '');
+  const location = escapeHtml(c.meta.location ?? '');
   const judge = escapeHtml(c.meta.judge ?? '');
 
   const strikeRows = log
@@ -85,13 +85,13 @@ export function generateBatsonMotionHtml(
   <div class="caption">
     <div><strong>${caption}</strong></div>
     <div>Docket # ${docket || '________'}</div>
-    <div>${parish ? `${parish} Parish, ` : ''}Judge ${judge || '________'}</div>
+    <div>${location ? `${location}, ` : ''}Judge ${judge || '________'}</div>
   </div>
 
   <h1>${opts.movant === 'defense' ? 'Defendant' : 'State'}'s Motion Challenging ${opponentLabel}'s Peremptory Strikes under <i>Batson v. Kentucky</i></h1>
 
   <p>
-    ${opts.movant === 'defense' ? 'The defendant' : 'The State'}, through undersigned counsel, respectfully moves this Honorable Court to require the ${opponentLabel} to articulate race-neutral reasons for the peremptory challenges exercised against the following prospective jurors, and, finding those reasons pretextual, to prohibit the challenged strikes under <i>Batson v. Kentucky</i>, 476 U.S. 79 (1986), and its Louisiana progeny.
+    ${opts.movant === 'defense' ? 'The defendant' : 'The State'}, through undersigned counsel, respectfully moves this Honorable Court to require the ${opponentLabel} to articulate race- and gender-neutral reasons for the peremptory challenges exercised against the following prospective jurors, and, finding those reasons pretextual, to prohibit the challenged strikes under <i>Batson v. Kentucky</i>, 476 U.S. 79 (1986), <i>J.E.B. v. Alabama ex rel. T.B.</i>, 511 U.S. 127 (1994), and their Louisiana progeny.
   </p>
 
   <h2>I. Prima facie showing</h2>
@@ -118,12 +118,12 @@ export function generateBatsonMotionHtml(
 
   <h2>III. Comparator analysis</h2>
   <p>
-    The comparators column identifies prospective jurors of a different race who share one or more characteristics with each struck juror and whom ${opponentLabel} did <em>not</em> strike. <i>See Miller-El v. Dretke</i>, 545 U.S. 231 (2005). Disparate treatment of similarly-situated jurors is strong evidence of pretext.
+    The comparators column identifies prospective jurors of a different race or gender who share one or more characteristics with each struck juror and whom ${opponentLabel} did <em>not</em> strike. <i>See Miller-El v. Dretke</i>, 545 U.S. 231 (2005); <i>J.E.B. v. Alabama ex rel. T.B.</i>, 511 U.S. 127 (1994). Disparate treatment of similarly-situated jurors is strong evidence of pretext.
   </p>
 
   <h2>IV. Relief requested</h2>
   <p>
-    Counsel respectfully requests that the Court require ${opponentLabel} to state race-neutral reasons for the challenged strikes, and, if those reasons are pretextual or unsupported by the record, to deny the strikes.
+    Counsel respectfully requests that the Court require ${opponentLabel} to state race- and gender-neutral reasons for the challenged strikes, and, if those reasons are pretextual or unsupported by the record, to deny the strikes.
   </p>
 
   <p style="margin-top:3em;">

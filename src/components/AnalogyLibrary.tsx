@@ -19,7 +19,7 @@ export default function AnalogyLibrary({ onPick, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-md shadow-xl p-6 w-[640px] max-h-[85vh] overflow-y-auto">
+      <div className="bg-[var(--bg-surface)] rounded-md shadow-xl p-6 w-[640px] max-h-[85vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold">Walk through an analogy</h2>
           <button
@@ -49,7 +49,7 @@ export default function AnalogyLibrary({ onPick, onClose }: Props) {
                       <button
                         type="button"
                         onClick={() => onPick(a.id)}
-                        className="w-full text-left rounded-md border border-slate-200 bg-white px-4 py-3 hover:border-slate-400"
+                        className="w-full text-left rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-4 py-3 hover:border-slate-400"
                       >
                         <div className="text-sm font-medium text-slate-900">
                           {a.title}

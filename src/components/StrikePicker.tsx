@@ -86,7 +86,7 @@ export default function StrikePicker({
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-md shadow-xl p-6 w-[520px] max-h-[85vh] overflow-y-auto">
+      <div className="bg-[var(--bg-surface)] rounded-md shadow-xl p-6 w-[520px] max-h-[85vh] overflow-y-auto">
         <h2 className="text-lg font-semibold mb-1">
           Decide: {jurorName || 'juror'}
         </h2>
@@ -112,7 +112,7 @@ export default function StrikePicker({
                       'text-xs px-2 py-1 rounded-md border ' +
                       (selected
                         ? 'bg-slate-900 text-white border-slate-900'
-                        : 'bg-white border-slate-300 text-slate-600 hover:border-slate-400')
+                        : 'bg-[var(--bg-surface)] border-slate-300 text-slate-600 hover:border-slate-400')
                     }
                   >
                     {PRIORITY_LABELS[p]}
@@ -131,7 +131,7 @@ export default function StrikePicker({
                 'flex items-start gap-3 p-2 rounded-md border cursor-pointer ' +
                 (choice === opt.value
                   ? 'border-slate-900 bg-slate-50'
-                  : 'border-slate-200 hover:border-slate-400')
+                  : 'border-[var(--border-default)] hover:border-slate-400')
               }
             >
               <input

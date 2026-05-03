@@ -1,4 +1,5 @@
 import type { Race, Gender, MaritalStatus } from './demographics';
+import { newId } from '../lib/id';
 
 export type CaseMode = 'questioning' | 'decision' | 'seated';
 export type PanelStatus = 'questioning' | 'decided' | 'archived';
@@ -14,6 +15,8 @@ export type JurorStatus =
   | 'excused-by-court';
 
 export type Lean = -3 | -2 | -1 | 0 | 1 | 2 | 3;
+
+export type PartyRating = 'red' | 'green' | 'yellow' | 'orange' | 'unrated';
 
 export type StrikePriority = 0 | 1 | 2 | 3 | 4 | 5;
 
@@ -32,6 +35,20 @@ export interface ReactionEntry {
 export interface FlagEntry {
   value: boolean;
   note?: string;
+}
+
+/** A single attorney-defined rating dimension, up to 3 per case. */
+export interface CustomFactor {
+  id: string;    // stable nanoid, generated at creation
+  label: string; // e.g. "Leadership"
+  abbr: string;  // 2–6 chars shown on seat card, e.g. "LDR"
+}
+
+/** 0 = unrated/unset; 1–5 = rated score */
+export type FactorScore = 0 | 1 | 2 | 3 | 4 | 5;
+
+export function makeCustomFactor(label: string, abbr: string): CustomFactor {
+  return { id: newId(), label, abbr };
 }
 
 export interface JurorFlags {
@@ -84,6 +101,9 @@ export interface Juror {
 
   flags: JurorFlags;
 
+  /** Scores keyed by CustomFactor.id. Absent key === unrated (0). */
+  factorScores: Record<string, FactorScore>;
+
   views: {
     burdenOfProof?: string;
     punishment?: string;
@@ -92,7 +112,13 @@ export interface Juror {
 
   demeanor?: string;
   notes: string; // markdown-capable free-form
+  notesMode?: 'text' | 'drawing'; // which notes tab is active; defaults to 'text'
+  drawingData?: string; // serialized SVG path data for freehand ink strokes
   lean: Lean;
+  partyRatings?: {
+    plaintiff?: PartyRating;
+    defense?: PartyRating;
+  };
   reactions: ReactionEntry[];
   strikePriority: StrikePriority;
 
@@ -121,7 +147,7 @@ export interface PeremptoryBudget {
 export interface CaseMeta {
   name: string;
   docketNumber?: string;
-  parish?: string;
+  location?: string;
   judge?: string;
   trialDate?: string; // ISO date
   targetJurors: number;
@@ -129,6 +155,10 @@ export interface CaseMeta {
   peremptoryBudget: PeremptoryBudget;
   venireSize: number;
   seatLayout: 'rows' | 'snake';
+  /** Attorney-defined rating dimensions, max 3. */
+  customFactors: CustomFactor[];
+  /** Insert visual aisle spacers after these 1-based column indices. */
+  aisleAfterColumns: number[];
 }
 
 export interface Case {

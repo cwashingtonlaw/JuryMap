@@ -27,7 +27,7 @@ export default function DisqualifyModal({
 
   return (
     <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-md shadow-xl p-6 w-[460px]">
+      <div className="bg-[var(--bg-surface)] rounded-md shadow-xl p-6 w-[460px]">
         <h2 className="text-lg font-semibold mb-2">
           Disqualify {jurorName || 'juror'}
         </h2>

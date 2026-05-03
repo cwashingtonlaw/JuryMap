@@ -1,13 +1,38 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --card-paper: #fffbe6;
-  --card-rule: #d9cfa0;
+  --card-paper: #fefce8; /* yellow-50 */
+  --card-rule: #fde68a;  /* yellow-200 */
   --accent-state: #b91c1c;    /* red-700 */
   --accent-defense: #047857;  /* emerald-700 */
   --accent-neutral: #92400e;  /* amber-800 */
+  --bg-body: #f8fafc;         /* slate-50 */
+  --bg-surface: #ffffff;      /* white */
+  --text-primary: #0f172a;    /* slate-900 */
+  --text-secondary: #64748b;  /* slate-500 */
+  --border-default: #e2e8f0;  /* slate-200 */
+  --border-subtle: #f1f5f9;   /* slate-100 */
+}
+
+.dark {
+  --card-paper: #1e293b;      /* slate-800 */
+  --card-rule: #475569;       /* slate-600 */
+  --accent-state: #f87171;    /* red-400 */
+  --accent-defense: #34d399;  /* emerald-400 */
+  --accent-neutral: #fbbf24;  /* amber-400 */
+  --bg-body: #0f172a;         /* slate-900 */
+  --bg-surface: #1e293b;      /* slate-800 */
+  --text-primary: #f1f5f9;    /* slate-100 */
+  --text-secondary: #94a3b8;  /* slate-400 */
+  --border-default: #334155;  /* slate-700 */
+  --border-subtle: #1e293b;   /* slate-800 */
 }
 
 html, body, #root { height: 100%; }
-body { background-color: #f8fafc; color: #0f172a; } /* slate-50 / slate-900 */
+body {
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+}

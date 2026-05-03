@@ -16,7 +16,7 @@ export default function PeremptoryTrackerScreen() {
 
   return (
     <div className="min-h-full">
-      <header className="border-b border-slate-200 bg-white px-8 py-4 flex items-center justify-between">
+      <header className="border-b border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-4 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">{activeCase.meta.name}</h1>
           <div className="text-xs text-slate-500">Peremptory Tracker</div>

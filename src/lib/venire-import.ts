@@ -1,9 +1,13 @@
+import type { Race, Gender } from '../types/demographics';
+
 export interface VenireRow {
   name: string;
   jurorNumber?: string;
   age?: number;
   address?: string;
   zip?: string;
+  race?: Race;
+  gender?: Gender;
 }
 
 export interface ParseResult {
@@ -97,6 +101,125 @@ function parseCsv(s: string): ParseResult {
       zip: zipIdx >= 0 ? cells[zipIdx]?.trim() || undefined : undefined,
     });
   }
+  return { rows, errors };
+}
+
+// ── Column Mapping Wizard support ──
+
+/** Fields a CSV column can be mapped to. 'skip' means ignore. */
+export type MappableField =
+  | 'name'
+  | 'jurorNumber'
+  | 'age'
+  | 'address'
+  | 'zip'
+  | 'race'
+  | 'gender'
+  | 'skip';
+
+export const MAPPABLE_FIELD_LABELS: Record<MappableField, string> = {
+  name: 'Name',
+  jurorNumber: 'Juror #',
+  age: 'Age',
+  address: 'Address',
+  zip: 'Zip',
+  race: 'Race',
+  gender: 'Gender',
+  skip: '(skip)',
+};
+
+/** Parse CSV headers + first N preview rows without mapping. */
+export function parseCsvPreview(
+  input: string,
+  previewRows = 5
+): { headers: string[]; rows: string[][]; totalRows: number } {
+  const lines = input.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length === 0) return { headers: [], rows: [], totalRows: 0 };
+  const headers = splitCsvLine(lines[0]);
+  const rows: string[][] = [];
+  for (let i = 1; i < Math.min(lines.length, 1 + previewRows); i++) {
+    rows.push(splitCsvLine(lines[i]));
+  }
+  return { headers, rows, totalRows: lines.length - 1 };
+}
+
+/** Suggest a MappableField for a given raw CSV header. */
+export function suggestMapping(header: string): MappableField {
+  const h = header.toLowerCase().trim();
+  if (/^name$|^full.?name$|^juror.?name$/i.test(h)) return 'name';
+  if (/juror.?#|juror.?num|juror.?number|juror.?no/i.test(h)) return 'jurorNumber';
+  if (/^age$|^dob$/i.test(h)) return 'age';
+  if (/^address$|^street$/i.test(h)) return 'address';
+  if (/^zip$|^zip.?code$|^postal$/i.test(h)) return 'zip';
+  if (/^race$|^ethnicity$/i.test(h)) return 'race';
+  if (/^gender$|^sex$/i.test(h)) return 'gender';
+  return 'skip';
+}
+
+const RACE_PARSE: Record<string, Race> = {
+  black: 'black', b: 'black', 'african american': 'black', 'african-american': 'black',
+  white: 'white', w: 'white', caucasian: 'white',
+  hispanic: 'hispanic', h: 'hispanic', latino: 'hispanic', latina: 'hispanic',
+  asian: 'asian', a: 'asian',
+  'native american': 'native-american', 'native-american': 'native-american',
+  'pacific islander': 'pacific-islander', 'pacific-islander': 'pacific-islander',
+  other: 'other', o: 'other',
+};
+
+const GENDER_PARSE: Record<string, Gender> = {
+  male: 'male', m: 'male', man: 'male',
+  female: 'female', f: 'female', woman: 'female',
+  nonbinary: 'nonbinary', 'non-binary': 'nonbinary', nb: 'nonbinary',
+};
+
+/** Parse CSV using an explicit column mapping. */
+export function parseVenireWithMapping(
+  input: string,
+  columnMap: MappableField[]
+): ParseResult {
+  const lines = input.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length < 2) return { rows: [], errors: ['No data rows'] };
+
+  const nameCol = columnMap.indexOf('name');
+  if (nameCol === -1) return { rows: [], errors: ['No column mapped to Name'] };
+
+  const rows: VenireRow[] = [];
+  const errors: string[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const cells = splitCsvLine(lines[i]);
+    const name = (cells[nameCol] ?? '').trim();
+    if (!name) continue;
+
+    const row: VenireRow = { name };
+
+    const numCol = columnMap.indexOf('jurorNumber');
+    if (numCol >= 0) row.jurorNumber = cells[numCol]?.trim() || undefined;
+
+    const ageCol = columnMap.indexOf('age');
+    if (ageCol >= 0) row.age = parseInt(cells[ageCol]) || undefined;
+
+    const addrCol = columnMap.indexOf('address');
+    if (addrCol >= 0) row.address = cells[addrCol]?.trim() || undefined;
+
+    const zipCol = columnMap.indexOf('zip');
+    if (zipCol >= 0) row.zip = cells[zipCol]?.trim() || undefined;
+
+    const raceCol = columnMap.indexOf('race');
+    if (raceCol >= 0) {
+      const raw = (cells[raceCol] ?? '').trim().toLowerCase();
+      row.race = RACE_PARSE[raw] ?? 'unknown';
+    }
+
+    const genderCol = columnMap.indexOf('gender');
+    if (genderCol >= 0) {
+      const raw = (cells[genderCol] ?? '').trim().toLowerCase();
+      row.gender = GENDER_PARSE[raw] ?? 'unknown';
+    }
+
+    rows.push(row);
+  }
+
   return { rows, errors };
 }
 

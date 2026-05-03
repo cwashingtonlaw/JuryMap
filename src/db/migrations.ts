@@ -24,6 +24,37 @@ const MIGRATIONS: Array<{ from: number; to: number; fn: MigrationFn }> = [
       return { ...data, meta, panels };
     },
   },
+  {
+    from: 2,
+    to: 3,
+    fn: (data: any) => {
+      // Backfill customFactors on meta
+      const meta = data.meta ?? {};
+      if (!Array.isArray(meta.customFactors)) meta.customFactors = [];
+
+      // Backfill factorScores on every juror in every panel
+      const panels = Array.isArray(data.panels) ? data.panels : [];
+      for (const p of panels) {
+        const jurors = Array.isArray(p.jurors) ? p.jurors : [];
+        for (const j of jurors) {
+          if (typeof j.factorScores !== 'object' || j.factorScores === null) {
+            j.factorScores = {};
+          }
+        }
+      }
+      return { ...data, meta, panels };
+    },
+  },
+  {
+    from: 3,
+    to: 4,
+    fn: (data: any) => {
+      // Backfill aisleAfterColumns on meta
+      const meta = data.meta ?? {};
+      if (!Array.isArray(meta.aisleAfterColumns)) meta.aisleAfterColumns = [];
+      return { ...data, meta };
+    },
+  },
 ];
 
 export interface MigrationResult {

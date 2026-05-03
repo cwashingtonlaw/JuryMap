@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { serializeCase, deserializeCase } from './juryfile';
 import type { Case } from '../types/case';
+import { CURRENT_SCHEMA_VERSION } from '../types/schema';
 
 function sampleCase(): Case {
   const now = new Date().toISOString();
   return {
     id: 'c',
-    schemaVersion: 2,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
     meta: {
       name: 'State v. X',
       targetJurors: 12,
@@ -14,6 +15,8 @@ function sampleCase(): Case {
       peremptoryBudget: { defense: 12, state: 12 },
       venireSize: 21,
       seatLayout: 'rows',
+      customFactors: [],
+      aisleAfterColumns: [],
     },
     mode: 'questioning',
     currentPanelIndex: 0,
@@ -45,7 +48,7 @@ describe('serializeCase / deserializeCase', () => {
     const c = sampleCase();
     const payload = serializeCase(c, 'jury-selection-app/0.2.0');
     const obj = JSON.parse(payload);
-    expect(obj.schemaVersion).toBe(2);
+    expect(obj.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(typeof obj.exportedAt).toBe('string');
     expect(obj.exportedBy).toBe('jury-selection-app/0.2.0');
     expect(obj.case.id).toBe('c');

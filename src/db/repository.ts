@@ -3,14 +3,14 @@ import { newId } from '../lib/id';
 import { CURRENT_SCHEMA_VERSION } from '../types/schema';
 import { deserializeCase } from '../lib/juryfile';
 import { migrate } from './migrations';
-import type { Case, CaseIndexRow, Juror, JurorStatus, Panel, PeremptoryBudget } from '../types/case';
+import type { Case, CaseIndexRow, CustomFactor, Juror, JurorStatus, Panel, PeremptoryBudget } from '../types/case';
 import type { VenireRow } from '../lib/venire-import';
 import { makeEmptyJuror } from '../lib/panel';
 
 export interface CreateCaseInput {
   name: string;
   docketNumber?: string;
-  parish?: string;
+  location?: string;
   judge?: string;
   trialDate?: string;
   targetJurors?: number;
@@ -18,6 +18,8 @@ export interface CreateCaseInput {
   peremptoryBudget?: PeremptoryBudget;
   venireSize?: number;
   seatLayout?: 'rows' | 'snake';
+  customFactors?: CustomFactor[];
+  aisleAfterColumns?: number[];
 }
 
 function nowIso(): string {
@@ -43,7 +45,7 @@ export async function createCase(input: CreateCaseInput): Promise<Case> {
     meta: {
       name: input.name,
       docketNumber: input.docketNumber,
-      parish: input.parish,
+      location: input.location,
       judge: input.judge,
       trialDate: input.trialDate,
       targetJurors: input.targetJurors ?? 12,
@@ -51,6 +53,8 @@ export async function createCase(input: CreateCaseInput): Promise<Case> {
       peremptoryBudget: input.peremptoryBudget ?? { defense: 12, state: 12 },
       venireSize: input.venireSize ?? 21,
       seatLayout: input.seatLayout ?? 'rows',
+      customFactors: input.customFactors ?? [],
+      aisleAfterColumns: input.aisleAfterColumns ?? [],
     },
     mode: 'questioning',
     currentPanelIndex: 0,
@@ -125,6 +129,8 @@ export async function populateFirstPanelFromVenire(
       address: row.address,
       zip: row.zip,
     };
+    if (row.race) j.demographics.race = row.race;
+    if (row.gender) j.demographics.gender = row.gender;
     return j;
   });
   await saveCase(c);

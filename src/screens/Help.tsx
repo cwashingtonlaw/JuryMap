@@ -20,7 +20,7 @@ const SHORTCUTS: Shortcut[] = [
 export default function Help() {
   return (
     <div className="min-h-full">
-      <header className="border-b border-slate-200 bg-white px-8 py-4 flex items-center justify-between">
+      <header className="border-b border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold">Help</h1>
         <Link
           to="/cases"
@@ -112,7 +112,7 @@ export default function Help() {
             </thead>
             <tbody>
               {SHORTCUTS.map((s) => (
-                <tr key={s.keys} className="border-b border-slate-100">
+                <tr key={s.keys} className="border-b border-[var(--border-subtle)]">
                   <td className="py-1 pr-4 font-mono text-xs">{s.keys}</td>
                   <td className="py-1 pr-4">{s.action}</td>
                   <td className="py-1 pr-4 text-slate-500">{s.context}</td>

@@ -119,6 +119,12 @@ export interface PatternFlag {
 }
 
 const PROTECTED_RACES = ['black', 'hispanic', 'asian', 'native-american', 'pacific-islander'] as const;
+const GENDER_TITLE: Record<string, string> = {
+  male: 'Male',
+  female: 'Female',
+  nonbinary: 'Nonbinary',
+  unknown: 'Unknown',
+};
 const RACE_TITLE: Record<string, string> = {
   black: 'Black',
   white: 'White',
@@ -209,6 +215,70 @@ export function batsonPatternFlags(c: Case): PatternFlag[] {
         flags.push({
           severity: 'alert',
           message: `${SIDE_TITLE[side]}'s strikes against ${RACE_TITLE[race]} jurors are statistically significant (Fisher's exact p = ${fisher.pTwoTailed.toFixed(3)}).`,
+        });
+      }
+    }
+  });
+
+  // ── Gender-based Batson analysis (J.E.B. v. Alabama Bio-Ute, Inc.) ──
+  // Same pattern checks applied to gender instead of race.
+  const perSideGender: Record<Side, Record<string, number>> = {
+    defense: {},
+    state: {},
+  };
+  for (const s of strikes) {
+    if (s.gender === 'unknown') continue;
+    perSideGender[s.side][s.gender] = (perSideGender[s.side][s.gender] ?? 0) + 1;
+  }
+
+  (['defense', 'state'] as const).forEach((side) => {
+    const total = Object.values(perSideGender[side]).reduce((a, b) => a + b, 0);
+    if (total < 3) return;
+    for (const [gender, n] of Object.entries(perSideGender[side])) {
+      const share = n / total;
+      if (share >= 0.8) {
+        flags.push({
+          severity: 'warn',
+          message: `${SIDE_TITLE[side]} has used ${n} of ${total} peremptories against ${GENDER_TITLE[gender] || gender} jurors (${Math.round(share * 100)}%) — J.E.B. gender pattern.`,
+        });
+      }
+    }
+  });
+
+  // Fisher's exact test on gender
+  const venireGender = c.panels
+    .flatMap((p) => p.jurors)
+    .filter((j) => j.demographics.gender !== 'unknown' && j.seatIndex != null);
+  const byGenderTotal: Record<string, number> = {};
+  for (const j of venireGender) {
+    byGenderTotal[j.demographics.gender] =
+      (byGenderTotal[j.demographics.gender] ?? 0) + 1;
+  }
+
+  (['defense', 'state'] as const).forEach((side) => {
+    const sideTotal = Object.values(perSideGender[side]).reduce((x, y) => x + y, 0);
+    if (sideTotal < 2) return;
+    for (const [gender, strikesByGender] of Object.entries(perSideGender[side])) {
+      if (strikesByGender < 2) continue;
+      const totalOfGender = byGenderTotal[gender] ?? 0;
+      if (totalOfGender < strikesByGender) continue;
+      const strikesOfOtherGenders = sideTotal - strikesByGender;
+      const venireTotal = venireGender.length;
+      const unstruckOfGender = totalOfGender - strikesByGender;
+      const unstruckOfOtherGenders =
+        venireTotal - totalOfGender - strikesOfOtherGenders;
+      if (unstruckOfGender < 0 || unstruckOfOtherGenders < 0) continue;
+
+      const fisher = fisherExact2x2(
+        strikesByGender,
+        strikesOfOtherGenders,
+        unstruckOfGender,
+        unstruckOfOtherGenders
+      );
+      if (fisher.pTwoTailed < 0.05) {
+        flags.push({
+          severity: 'alert',
+          message: `${SIDE_TITLE[side]}'s strikes against ${GENDER_TITLE[gender]} jurors are statistically significant (Fisher's exact p = ${fisher.pTwoTailed.toFixed(3)}) — J.E.B. v. Alabama.`,
         });
       }
     }

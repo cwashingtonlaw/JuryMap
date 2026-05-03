@@ -1,6 +1,7 @@
 import { newId } from './id';
 import { emptyFlags } from '../types/case';
-import type { Juror, Panel, SeatMove } from '../types/case';
+import type { Case, Juror, Panel, SeatMove } from '../types/case';
+import { peremptoryCounts } from './strike';
 
 export function makeEmptyJuror(panelId: string, seatIndex: number | null = null): Juror {
   const now = new Date().toISOString();
@@ -17,6 +18,7 @@ export function makeEmptyJuror(panelId: string, seatIndex: number | null = null)
     },
     employment: {},
     flags: emptyFlags(),
+    factorScores: {},
     views: {},
     notes: '',
     lean: 0,
@@ -201,4 +203,42 @@ export function swapSeats(
   });
 
   return { panel: { ...panel, jurors: nextJurors } };
+}
+
+/**
+ * Calculate the last seat number that is mathematically "in play".
+ *
+ * The cutoff is the highest seat index that could potentially be called
+ * to serve, given the remaining peremptory strikes from both sides plus
+ * cause/excusal strikes already used (which created additional seats needed).
+ *
+ * Seats beyond this number are dimmed in the UI so the attorney instantly
+ * knows the realistic boundary of the panel.
+ */
+export function calcCutoffSeat(c: Case): number {
+  const { targetJurors, targetAlternates, peremptoryBudget, venireSize } = c.meta;
+  const allJurors = c.panels.flatMap((p) => p.jurors);
+  const counts = peremptoryCounts(allJurors);
+
+  const defenseRemaining = Math.max(0, peremptoryBudget.defense - counts.defense);
+  const stateRemaining = Math.max(0, peremptoryBudget.state - counts.state);
+
+  // Count cause strikes and excusals already used (these consumed seats
+  // beyond peremptory budget)
+  let causeAndExcused = 0;
+  for (const j of allJurors) {
+    if (
+      j.status === 'struck-cause-defense' ||
+      j.status === 'struck-cause-state' ||
+      j.status === 'excused-by-court' ||
+      j.status === 'disqualified'
+    ) {
+      causeAndExcused++;
+    }
+  }
+
+  const cutoff =
+    targetJurors + targetAlternates + defenseRemaining + stateRemaining + causeAndExcused;
+
+  return Math.min(cutoff, venireSize);
 }

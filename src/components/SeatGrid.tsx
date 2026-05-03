@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import SeatCard from './SeatCard';
-import type { Juror } from '../types/case';
+import type { CustomFactor, Juror } from '../types/case';
 
 interface Props {
   jurors: Juror[];
@@ -10,6 +10,10 @@ interface Props {
   columns?: number;                // override columns (optional)
   showStrikePriority?: boolean;    // Decision mode renders the priority ring
   onSwap?: (fromSeat: number, toSeat: number) => void; // enable drag-to-rearrange
+  customFactors?: CustomFactor[];  // Case-level factors for seat card chips
+  cutoffSeat?: number;             // Smart Gallery Cutoff: seats beyond this are dimmed
+  selectedSeats?: Set<number>;     // Group Question mode: seats currently selected
+  aisleAfterColumns?: number[];   // Insert visual spacers after these 1-based column indices
 }
 
 function defaultColumnsFor(size: number): number {
@@ -29,6 +33,10 @@ export default function SeatGrid({
   columns,
   showStrikePriority,
   onSwap,
+  customFactors = [],
+  cutoffSeat,
+  selectedSeats,
+  aisleAfterColumns = [],
 }: Props) {
   const bySeat = new Map<number, Juror>();
   for (const j of jurors) {
@@ -53,8 +61,18 @@ export default function SeatGrid({
   // Pad so the grid stays rectangular
   while (seatOrder.length < rows * cols) seatOrder.push(0); // 0 = placeholder
 
+  // Build gridTemplateColumns with optional aisle spacers.
+  // aisleAfterColumns contains 1-based column positions; a narrow gap column
+  // is inserted after each one.
+  const aisleSet = new Set(aisleAfterColumns);
+  const colParts: string[] = [];
+  for (let c = 1; c <= cols; c++) {
+    colParts.push('minmax(0, 1fr)');
+    if (aisleSet.has(c)) colParts.push('12px'); // aisle spacer
+  }
+
   const gridStyle = {
-    gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+    gridTemplateColumns: colParts.join(' '),
     gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
   };
 
@@ -94,24 +112,40 @@ export default function SeatGrid({
       }}
     >
       {seatOrder.map((seat, i) => {
+        const colInRow = (i % cols) + 1; // 1-based column position
+        const elements: React.ReactNode[] = [];
         if (seat === 0) {
-          return <div key={`blank-${i}`} />;
+          elements.push(<div key={`blank-${i}`} />);
+        } else {
+          elements.push(
+            <SeatCard
+              key={seat}
+              seat={seat}
+              juror={bySeat.get(seat)}
+              onClick={onSeatClick ? () => onSeatClick(seat) : undefined}
+              showStrikePriority={showStrikePriority}
+              customFactors={customFactors}
+              draggable={!!onSwap}
+              onDragStart={onSwap ? handleDragStart : undefined}
+              onDragOver={onSwap ? handleDragOver : undefined}
+              onDrop={onSwap ? handleDrop : undefined}
+              isDragging={dragFrom === seat}
+              isDragOver={dragOver === seat}
+              beyondCutoff={cutoffSeat != null && seat > cutoffSeat}
+              isSelected={selectedSeats?.has(seat)}
+            />
+          );
         }
-        return (
-          <SeatCard
-            key={seat}
-            seat={seat}
-            juror={bySeat.get(seat)}
-            onClick={onSeatClick ? () => onSeatClick(seat) : undefined}
-            showStrikePriority={showStrikePriority}
-            draggable={!!onSwap}
-            onDragStart={onSwap ? handleDragStart : undefined}
-            onDragOver={onSwap ? handleDragOver : undefined}
-            onDrop={onSwap ? handleDrop : undefined}
-            isDragging={dragFrom === seat}
-            isDragOver={dragOver === seat}
-          />
-        );
+        // Insert aisle spacer div after this column if needed
+        if (aisleSet.has(colInRow)) {
+          elements.push(
+            <div
+              key={`aisle-${i}`}
+              className="border-l border-dashed border-slate-300"
+            />
+          );
+        }
+        return elements;
       })}
     </div>
   );

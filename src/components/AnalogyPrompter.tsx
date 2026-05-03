@@ -21,7 +21,7 @@ export default function AnalogyPrompter({
   if (!analogy) {
     return (
       <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
-        <div className="bg-white rounded-md shadow-xl p-6 w-[480px]">
+        <div className="bg-[var(--bg-surface)] rounded-md shadow-xl p-6 w-[480px]">
           <p className="text-sm text-red-700">
             Unknown analogy id: {analogyId}
           </p>
@@ -67,8 +67,8 @@ export default function AnalogyPrompter({
 
   return (
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-md shadow-xl w-[720px] max-h-[85vh] overflow-y-auto">
-        <header className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+      <div className="bg-[var(--bg-surface)] rounded-md shadow-xl w-[720px] max-h-[85vh] overflow-y-auto">
+        <header className="flex items-center justify-between px-6 py-4 border-b border-[var(--border-default)]">
           <div>
             <div className="text-xs uppercase tracking-wider text-slate-500">
               {analogy.title}
@@ -93,7 +93,7 @@ export default function AnalogyPrompter({
           )}
 
           {step.checkpoint && (
-            <div className="mt-6 border-t border-slate-200 pt-4">
+            <div className="mt-6 border-t border-[var(--border-default)] pt-4">
               <div className="text-sm font-medium mb-2">
                 Spotter: {step.checkpoint.question}
               </div>
@@ -115,7 +115,7 @@ export default function AnalogyPrompter({
                         'rounded-md border px-4 py-2 text-sm font-medium ' +
                         klass +
                         ' ' +
-                        (selected ? 'bg-slate-100' : 'bg-white hover:bg-slate-50')
+                        (selected ? 'bg-slate-100' : 'bg-[var(--bg-surface)] hover:bg-slate-50')
                       }
                     >
                       {selected ? '✓ ' : ''}
@@ -133,7 +133,7 @@ export default function AnalogyPrompter({
           )}
         </div>
 
-        <footer className="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-slate-50">
+        <footer className="flex items-center justify-between px-6 py-4 border-t border-[var(--border-default)] bg-[var(--bg-body)]">
           <button
             onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
             disabled={stepIndex === 0}

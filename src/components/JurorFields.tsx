@@ -1,15 +1,18 @@
-import type { Juror, Lean } from '../types/case';
+import type { Juror, Lean, CustomFactor, PartyRating } from '../types/case';
 import { RACE_LABELS, GENDER_LABELS, MARITAL_LABELS } from '../types/demographics';
 import LeanControl from './LeanControl';
 import FlagChips from './FlagChips';
+import FactorScores from './FactorScores';
+import DrawingCanvas from './DrawingCanvas';
 
 interface Props {
   juror: Juror;
+  factors?: CustomFactor[];
   readOnly?: boolean;
   onChange: (mutator: (draft: Juror) => void) => void;
 }
 
-export default function JurorFields({ juror, readOnly, onChange }: Props) {
+export default function JurorFields({ juror, factors = [], readOnly, onChange }: Props) {
   function set<K extends keyof Juror>(key: K, value: Juror[K]) {
     onChange((d) => {
       (d as any)[key] = value;
@@ -172,21 +175,158 @@ export default function JurorFields({ juror, readOnly, onChange }: Props) {
         />
       </fieldset>
 
+      {factors.length > 0 && (
+        <fieldset className="grid gap-2" disabled={readOnly}>
+          <legend className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+            Case Factors
+          </legend>
+          <FactorScores
+            factors={factors}
+            scores={juror.factorScores ?? {}}
+            readOnly={readOnly}
+            onChange={(id, score) =>
+              onChange((d) => {
+                d.factorScores = { ...(d.factorScores ?? {}), [id]: score };
+              })
+            }
+          />
+        </fieldset>
+      )}
+
       <fieldset className="grid gap-2" disabled={readOnly}>
         <legend className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-          Notes
+          Party Ratings
         </legend>
-        <textarea
-          rows={6}
-          className="rounded-md border border-slate-300 px-3 py-2 text-sm"
-          value={juror.notes}
-          onChange={(e) =>
-            onChange((d) => {
-              d.notes = e.target.value;
-            })
-          }
-          placeholder="Demeanor, responses to questions, red flags…"
-        />
+        <div className="grid gap-2 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="w-16 font-medium text-slate-600">Plaintiff</span>
+            <div className="flex gap-1">
+              {(['unrated', 'green', 'yellow', 'orange', 'red'] as PartyRating[]).map((rating) => (
+                <button
+                  key={rating}
+                  onClick={() => onChange((d) => {
+                    if (!d.partyRatings) d.partyRatings = {};
+                    d.partyRatings.plaintiff = rating;
+                  })}
+                  className={`w-6 h-6 rounded-full border ${
+                    juror.partyRatings?.plaintiff === rating
+                      ? 'ring-2 ring-offset-1 ring-blue-500'
+                      : 'border-slate-300 hover:border-slate-400'
+                  } ${
+                    rating === 'unrated' ? 'bg-slate-100 text-[10px] text-slate-400' :
+                    rating === 'green' ? 'bg-green-500' :
+                    rating === 'yellow' ? 'bg-yellow-400' :
+                    rating === 'orange' ? 'bg-orange-500' :
+                    'bg-red-500'
+                  }`}
+                  title={rating}
+                >
+                  {rating === 'unrated' && '—'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-16 font-medium text-slate-600">Defense</span>
+            <div className="flex gap-1">
+              {(['unrated', 'green', 'yellow', 'orange', 'red'] as PartyRating[]).map((rating) => (
+                <button
+                  key={rating}
+                  onClick={() => onChange((d) => {
+                    if (!d.partyRatings) d.partyRatings = {};
+                    d.partyRatings.defense = rating;
+                  })}
+                  className={`w-6 h-6 rounded-full border ${
+                    juror.partyRatings?.defense === rating
+                      ? 'ring-2 ring-offset-1 ring-blue-500'
+                      : 'border-slate-300 hover:border-slate-400'
+                  } ${
+                    rating === 'unrated' ? 'bg-slate-100 text-[10px] text-slate-400' :
+                    rating === 'green' ? 'bg-green-500' :
+                    rating === 'yellow' ? 'bg-yellow-400' :
+                    rating === 'orange' ? 'bg-orange-500' :
+                    'bg-red-500'
+                  }`}
+                  title={rating}
+                >
+                  {rating === 'unrated' && '—'}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset className="grid gap-2">
+        <div className="flex items-center justify-between">
+          <legend className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+            NOTES
+          </legend>
+          {/* Text ↔ Handwriting toggle */}
+          {!readOnly && (
+            <div className="flex rounded-md border border-slate-300 overflow-hidden text-xs font-medium">
+              <button
+                type="button"
+                onClick={() =>
+                  onChange((d) => {
+                    d.notesMode = 'text';
+                  })
+                }
+                className={
+                  'px-3 py-1 transition-colors ' +
+                  ((juror.notesMode ?? 'text') === 'text'
+                    ? 'bg-slate-800 text-white'
+                    : 'bg-white text-slate-600 hover:bg-slate-50')
+                }
+              >
+                Text
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  onChange((d) => {
+                    d.notesMode = 'drawing';
+                  })
+                }
+                className={
+                  'px-3 py-1 border-l border-slate-300 transition-colors ' +
+                  ((juror.notesMode ?? 'text') === 'drawing'
+                    ? 'bg-slate-800 text-white'
+                    : 'bg-white text-slate-600 hover:bg-slate-50')
+                }
+              >
+                ✍ Handwriting
+              </button>
+            </div>
+          )}
+        </div>
+
+        {(juror.notesMode ?? 'text') === 'text' ? (
+          <textarea
+            rows={6}
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+            value={juror.notes}
+            disabled={readOnly}
+            onChange={(e) =>
+              onChange((d) => {
+                d.notes = e.target.value;
+              })
+            }
+            placeholder="Demeanor, responses to questions, red flags…"
+          />
+        ) : (
+          <DrawingCanvas
+            value={juror.drawingData ?? ''}
+            onChange={(svg) =>
+              onChange((d) => {
+                d.drawingData = svg;
+              })
+            }
+            readOnly={readOnly}
+            canvasWidth={380}
+            canvasHeight={240}
+          />
+        )}
       </fieldset>
     </div>
   );

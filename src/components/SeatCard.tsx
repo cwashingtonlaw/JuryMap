@@ -3,6 +3,7 @@ import type {
   JurorFlags,
   JurorStatus,
   StrikePriority,
+  CustomFactor,
 } from '../types/case';
 import {
   RACE_LABELS,
@@ -21,6 +22,9 @@ interface Props {
   onDrop?: (seat: number, ev: React.DragEvent) => void;
   isDragging?: boolean;
   isDragOver?: boolean;
+  customFactors?: CustomFactor[];
+  beyondCutoff?: boolean;         // Seat is beyond the Smart Gallery Cutoff line
+  isSelected?: boolean;           // Group Question mode: seat is currently selected
 }
 
 const LEAN_COLOR: Record<number, string> = {
@@ -100,9 +104,13 @@ export default function SeatCard({
   onDrop,
   isDragging,
   isDragOver,
+  customFactors = [],
+  beyondCutoff,
+  isSelected,
 }: Props) {
   const badge = juror ? STATUS_BADGE[juror.status] : undefined;
   const dimmed = juror && juror.status !== 'active' && juror.status !== 'kept';
+  const cutoffDimmed = beyondCutoff && !dimmed;
   const priorityRing =
     showStrikePriority && juror ? PRIORITY_RING[juror.strikePriority] : '';
 
@@ -129,6 +137,10 @@ export default function SeatCard({
 
   const flagChips = juror ? activeFlagKeys(juror.flags) : [];
 
+  const factorChips = juror
+    ? customFactors.filter((f) => (juror.factorScores?.[f.id] ?? 0) > 0)
+    : [];
+
   return (
     <button
       type="button"
@@ -149,18 +161,50 @@ export default function SeatCard({
         'p-2 border-l-4 h-full flex flex-col overflow-hidden ' +
         (juror ? LEAN_COLOR[juror.lean] : 'border-l-slate-200') +
         (dimmed ? ' opacity-60' : '') +
+        (cutoffDimmed ? ' opacity-40 border-dashed' : '') +
         (priorityRing ? ' ' + priorityRing : '') +
         (isDragging ? ' opacity-40' : '') +
         (isDragOver ? ' ring-2 ring-blue-500 ring-offset-1' : '') +
+        (isSelected ? ' ring-2 ring-blue-500 ring-offset-1 bg-blue-50' : '') +
         (draggable && juror ? ' cursor-grab active:cursor-grabbing' : '')
       }
     >
-      {/* Header row: seat number + juror number + status badge (top-right) */}
+      {/* Header row: seat number + juror number + ratings + status badge (top-right) */}
       <div className="text-[10px] text-slate-500 flex justify-between items-center shrink-0">
-        <span>Seat {seat}</span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-[9px] uppercase tracking-tight text-slate-400">Seat {seat}</span>
           {juror?.identity.jurorNumber && (
-            <span>#{juror.identity.jurorNumber}</span>
+            <span className="text-xs font-black text-slate-900 leading-none">
+              {juror.identity.jurorNumber}
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          {juror?.partyRatings?.plaintiff && juror.partyRatings.plaintiff !== 'unrated' && (
+            <div
+              className={`w-3 h-3 rounded-full flex items-center justify-center text-[7px] font-bold text-black/60 ${
+                juror.partyRatings.plaintiff === 'green' ? 'bg-green-500 text-white/90' :
+                juror.partyRatings.plaintiff === 'yellow' ? 'bg-yellow-400 text-black/60' :
+                juror.partyRatings.plaintiff === 'orange' ? 'bg-orange-500 text-white/90' :
+                'bg-red-500 text-white/90'
+              }`}
+              title={`Plaintiff: ${juror.partyRatings.plaintiff}`}
+            >
+              P
+            </div>
+          )}
+          {juror?.partyRatings?.defense && juror.partyRatings.defense !== 'unrated' && (
+            <div
+              className={`w-3 h-3 rounded-full flex items-center justify-center text-[7px] font-bold text-black/60 ${
+                juror.partyRatings.defense === 'green' ? 'bg-green-500 text-white/90' :
+                juror.partyRatings.defense === 'yellow' ? 'bg-yellow-400 text-black/60' :
+                juror.partyRatings.defense === 'orange' ? 'bg-orange-500 text-white/90' :
+                'bg-red-500 text-white/90'
+              }`}
+              title={`Defense: ${juror.partyRatings.defense}`}
+            >
+              D
+            </div>
           )}
           {badge && (
             <span
@@ -191,7 +235,7 @@ export default function SeatCard({
 
       {/* Employment */}
       {employmentLine && (
-        <div className="text-[11px] text-slate-700 mt-1 shrink-0 line-clamp-2">
+        <div className="text-xs text-slate-800 mt-1 shrink-0 font-medium line-clamp-1 border-t border-slate-200/50 pt-1">
           {employmentLine}
         </div>
       )}
@@ -202,7 +246,7 @@ export default function SeatCard({
           {flagChips.map((k) => (
             <span
               key={k}
-              className="text-[9px] uppercase tracking-wider px-1 py-0.5 rounded bg-amber-100 text-amber-800"
+              className="text-[9px] uppercase tracking-wider px-1 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200"
             >
               {FLAG_CHIP_LABEL[k]}
             </span>
@@ -210,12 +254,65 @@ export default function SeatCard({
         </div>
       )}
 
-      {/* Notes — take all remaining vertical space */}
-      {juror?.notes && juror.notes.trim() && (
-        <div className="text-[11px] text-slate-800 mt-1.5 whitespace-pre-wrap border-t border-slate-200/70 pt-1.5 flex-1 min-h-0 overflow-hidden">
-          {juror.notes}
+      {/* Factor chips */}
+      {factorChips.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1 shrink-0">
+          {factorChips.map((f) => (
+            <span
+              key={f.id}
+              className="text-[9px] uppercase tracking-wider px-1 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200 flex items-center gap-0.5"
+            >
+              <span className="font-bold">{f.abbr}</span>
+              <span className="text-[10px]">★{juror!.factorScores[f.id]}</span>
+            </span>
+          ))}
         </div>
       )}
+
+      {/* Notes — text or ink thumbnail */}
+      {juror && (juror.notesMode ?? 'text') === 'drawing' && juror.drawingData ? (
+        <div className="mt-1.5 border-t border-slate-200/70 pt-1.5 flex-1 min-h-0 overflow-hidden flex flex-col">
+          <div className="text-[9px] font-semibold uppercase tracking-wider text-slate-500 mb-0.5 flex items-center gap-1">
+            <span>✍</span><span>Ink</span>
+          </div>
+          <div className="flex-1 min-h-0 rounded overflow-hidden bg-[#fdfcf7] border border-slate-200/60">
+            <svg
+              viewBox="0 0 400 240"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ width: '100%', height: '100%', display: 'block' }}
+              preserveAspectRatio="xMidYMid meet"
+            >
+              {(() => {
+                try {
+                  const strokes: Array<{ d: string; c: string; w: number }> = JSON.parse(juror.drawingData!);
+                  return strokes.map((s, i) => (
+                    <path
+                      key={i}
+                      d={s.d}
+                      stroke={s.c}
+                      strokeWidth={s.w}
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  ));
+                } catch {
+                  return null;
+                }
+              })()}
+            </svg>
+          </div>
+        </div>
+      ) : juror?.notes && juror.notes.trim() ? (
+        <div className="mt-1.5 border-t border-slate-200/70 pt-1.5 flex-1 min-h-0 overflow-hidden flex flex-col">
+          <div className="text-[9px] font-semibold uppercase tracking-wider text-slate-500 mb-0.5">
+            Notes
+          </div>
+          <div className="text-[11px] text-slate-800 whitespace-pre-wrap flex-1 overflow-hidden line-clamp-4">
+            {juror.notes}
+          </div>
+        </div>
+      ) : null}
     </button>
   );
 }

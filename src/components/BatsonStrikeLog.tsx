@@ -52,7 +52,7 @@ export default function BatsonStrikeLog({
                 key={e.jurorId}
                 onClick={() => onSelect(e.jurorId)}
                 className={
-                  'border-b border-slate-100 cursor-pointer hover:bg-slate-50 ' +
+                  'border-b border-[var(--border-subtle)] cursor-pointer hover:bg-slate-50 ' +
                   (selected ? 'bg-amber-50' : '')
                 }
               >

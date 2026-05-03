@@ -81,7 +81,7 @@ export default function AnalogyReport() {
         <table className="text-xs border-collapse">
           <thead>
             <tr>
-              <th className="sticky left-0 bg-white text-left p-2 border-b-2 border-slate-300 font-medium">
+              <th className="sticky left-0 bg-[var(--bg-surface)] text-left p-2 border-b-2 border-slate-300 font-medium">
                 Juror
               </th>
               {analogyColumns.map(({ analogy, checkpoints }) =>
@@ -107,7 +107,7 @@ export default function AnalogyReport() {
               .filter((j) => j.reactions.some((r) => r.kind === 'analogy-response'))
               .map((j) => (
                 <tr key={j.id}>
-                  <td className="sticky left-0 bg-white p-2 border-b border-slate-100 font-medium">
+                  <td className="sticky left-0 bg-[var(--bg-surface)] p-2 border-b border-[var(--border-subtle)] font-medium">
                     {j.identity.name || '(unnamed)'}
                     <div className="text-[10px] text-slate-500">
                       Seat {j.seatIndex ?? '—'}
@@ -119,7 +119,7 @@ export default function AnalogyReport() {
                       return (
                         <td
                           key={`${j.id}::${analogy.id}::${cp.id}`}
-                          className="p-1 border-b border-slate-100 align-middle text-center"
+                          className="p-1 border-b border-[var(--border-subtle)] align-middle text-center"
                         >
                           {r ? (
                             <span
@@ -152,7 +152,7 @@ export default function AnalogyReport() {
 
 function Header({ caseName, caseId }: { caseName: string; caseId: string }) {
   return (
-    <header className="border-b border-slate-200 bg-white px-8 py-4 flex items-center justify-between">
+    <header className="border-b border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-4 flex items-center justify-between">
       <div>
         <h1 className="text-xl font-semibold">{caseName}</h1>
         <div className="text-xs text-slate-500">Analogy response report</div>

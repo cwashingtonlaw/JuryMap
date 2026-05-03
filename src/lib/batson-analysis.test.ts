@@ -6,6 +6,7 @@ import {
 } from './batson-analysis';
 import type { Case, Juror } from '../types/case';
 import { makeEmptyJuror } from './panel';
+import { CURRENT_SCHEMA_VERSION } from '../types/schema';
 
 function juror(overrides: Partial<Juror>): Juror {
   return { ...makeEmptyJuror('p'), ...overrides };
@@ -15,7 +16,7 @@ function buildCase(jurors: Juror[]): Case {
   const now = new Date().toISOString();
   return {
     id: 'c',
-    schemaVersion: 1,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
     meta: {
       name: 'Test',
       targetJurors: 12,
@@ -23,6 +24,8 @@ function buildCase(jurors: Juror[]): Case {
       peremptoryBudget: { defense: 12, state: 12 },
       venireSize: 21,
       seatLayout: 'rows' as const,
+      customFactors: [],
+      aisleAfterColumns: [],
     },
     mode: 'decision',
     currentPanelIndex: 0,
@@ -253,5 +256,90 @@ describe('batsonPatternFlags', () => {
     const flags = batsonPatternFlags(c);
     expect(flags.some((f) => /Fisher/i.test(f.message))).toBe(true);
     expect(flags.some((f) => /0\.0[0-4]\d+/.test(f.message))).toBe(true);
+  });
+
+  it('flags gender-based patterns (J.E.B. v. Alabama)', () => {
+    // State strikes 4 female, 1 male — 80% against female
+    const c = buildCase([
+      juror({
+        status: 'struck-peremptory-state',
+        strikeReason: 'x',
+        demographics: { race: 'white', gender: 'female', maritalStatus: 'unknown' },
+      }),
+      juror({
+        status: 'struck-peremptory-state',
+        strikeReason: 'x',
+        demographics: { race: 'white', gender: 'female', maritalStatus: 'unknown' },
+      }),
+      juror({
+        status: 'struck-peremptory-state',
+        strikeReason: 'x',
+        demographics: { race: 'black', gender: 'female', maritalStatus: 'unknown' },
+      }),
+      juror({
+        status: 'struck-peremptory-state',
+        strikeReason: 'x',
+        demographics: { race: 'white', gender: 'female', maritalStatus: 'unknown' },
+      }),
+      juror({
+        status: 'struck-peremptory-state',
+        strikeReason: 'x',
+        demographics: { race: 'white', gender: 'male', maritalStatus: 'unknown' },
+      }),
+    ]);
+    const flags = batsonPatternFlags(c);
+    expect(flags.some((f) => /Female.*J\.E\.B/i.test(f.message))).toBe(true);
+  });
+
+  it('fires a Fisher alert on gender when statistically significant', () => {
+    // Venire: 10 female, 10 male. State strikes 5 female, 0 male.
+    const jurors: Juror[] = [];
+    for (let i = 0; i < 5; i++) {
+      jurors.push(
+        juror({
+          status: 'struck-peremptory-state',
+          seatIndex: i + 1,
+          demographics: { race: 'white', gender: 'female', maritalStatus: 'unknown' },
+        })
+      );
+    }
+    for (let i = 0; i < 5; i++) {
+      jurors.push(
+        juror({
+          status: 'active',
+          seatIndex: i + 6,
+          demographics: { race: 'white', gender: 'female', maritalStatus: 'unknown' },
+        })
+      );
+    }
+    for (let i = 0; i < 10; i++) {
+      jurors.push(
+        juror({
+          status: 'active',
+          seatIndex: i + 11,
+          demographics: { race: 'white', gender: 'male', maritalStatus: 'unknown' },
+        })
+      );
+    }
+    const c = buildCase(jurors);
+    const flags = batsonPatternFlags(c);
+    expect(flags.some((f) => /Female.*Fisher.*J\.E\.B/i.test(f.message))).toBe(true);
+  });
+
+  it('does not flag gender when pattern is balanced', () => {
+    const c = buildCase([
+      juror({
+        status: 'struck-peremptory-state',
+        strikeReason: 'x',
+        demographics: { race: 'white', gender: 'female', maritalStatus: 'unknown' },
+      }),
+      juror({
+        status: 'struck-peremptory-state',
+        strikeReason: 'x',
+        demographics: { race: 'white', gender: 'male', maritalStatus: 'unknown' },
+      }),
+    ]);
+    const flags = batsonPatternFlags(c);
+    expect(flags.some((f) => /J\.E\.B/i.test(f.message))).toBe(false);
   });
 });

@@ -26,7 +26,7 @@ describe('repository', () => {
     });
     const loaded = await getCase(created.id);
     expect(loaded?.meta.name).toBe('State v. Smith');
-    expect(loaded?.schemaVersion).toBe(2);
+    expect(loaded?.schemaVersion).toBe(4);
     expect(loaded?.mode).toBe('questioning');
     expect(loaded?.panels.length).toBe(1); // first panel auto-created
   });

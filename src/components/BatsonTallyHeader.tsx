@@ -25,7 +25,7 @@ export default function BatsonTallyHeader({ activeCase }: Props) {
 
   return (
     <div
-      className="grid grid-cols-2 gap-6 border-t border-slate-200 px-8 py-2 bg-slate-50 text-xs"
+      className="grid grid-cols-2 gap-6 border-t border-[var(--border-default)] px-8 py-2 bg-[var(--bg-body)] text-xs"
       data-testid="batson-tally-header"
     >
       <div>

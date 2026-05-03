@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { batsonTally } from './batson';
 import type { Case, Juror } from '../types/case';
 import { makeEmptyJuror } from './panel';
+import { CURRENT_SCHEMA_VERSION } from '../types/schema';
 
 function juror(overrides: Partial<Juror>): Juror {
   return { ...makeEmptyJuror('p'), ...overrides };
@@ -11,7 +12,7 @@ function caseWithJurors(jurors: Juror[]): Case {
   const now = new Date().toISOString();
   return {
     id: 'c',
-    schemaVersion: 1,
+    schemaVersion: CURRENT_SCHEMA_VERSION,
     meta: {
       name: 'Test',
       targetJurors: 12,
@@ -19,6 +20,8 @@ function caseWithJurors(jurors: Juror[]): Case {
       peremptoryBudget: { defense: 12, state: 12 },
       venireSize: 21,
       seatLayout: 'rows' as const,
+      customFactors: [],
+      aisleAfterColumns: [],
     },
     mode: 'decision',
     currentPanelIndex: 0,

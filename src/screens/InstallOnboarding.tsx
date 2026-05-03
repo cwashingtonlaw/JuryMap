@@ -5,8 +5,8 @@ export default function InstallOnboarding() {
   const p = detectPlatform();
 
   return (
-    <div className="min-h-full bg-slate-50">
-      <header className="border-b border-slate-200 bg-white px-8 py-4 flex items-center justify-between">
+    <div className="min-h-full bg-[var(--bg-body)]">
+      <header className="border-b border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold">Install the Jury Selection app</h1>
         <Link
           to="/cases"

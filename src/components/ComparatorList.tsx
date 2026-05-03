@@ -57,7 +57,7 @@ export default function ComparatorList({ activeCase, struckJurorId }: Props) {
           {comps.map((c) => (
             <li
               key={c.juror.id}
-              className="rounded border border-slate-200 bg-white p-3"
+              className="rounded border border-[var(--border-default)] bg-[var(--bg-surface)] p-3"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -83,7 +83,7 @@ export default function ComparatorList({ activeCase, struckJurorId }: Props) {
                 {c.sharedAttributes.map((a) => (
                   <span
                     key={a}
-                    className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-700"
+                    className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-[var(--border-subtle)] text-slate-700"
                   >
                     {SHARED_LABELS[a] ?? a}
                   </span>

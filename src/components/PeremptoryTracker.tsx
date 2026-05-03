@@ -1,5 +1,6 @@
 import type { Case } from '../types/case';
 import { peremptoryCounts } from '../lib/strike';
+import { calcCutoffSeat } from '../lib/panel';
 
 interface Props {
   activeCase: Case;
@@ -39,6 +40,7 @@ export default function PeremptoryTracker({ activeCase, variant = 'rail' }: Prop
   const strikes = collectStrikes(activeCase);
   const counts = peremptoryCounts(activeCase.panels.flatMap((p) => p.jurors));
   const { defense: dBudget, state: sBudget } = activeCase.meta.peremptoryBudget;
+  const cutoff = calcCutoffSeat(activeCase);
 
   const rail = variant === 'rail';
 
@@ -46,10 +48,21 @@ export default function PeremptoryTracker({ activeCase, variant = 'rail' }: Prop
     <section
       className={
         rail
-          ? 'bg-slate-50 border-l border-slate-200 p-4 w-72 h-full overflow-y-auto text-sm'
+          ? 'bg-[var(--bg-surface)] border-l border-[var(--border-default)] p-4 w-72 h-full overflow-y-auto text-sm'
           : 'p-8 grid grid-cols-2 gap-8'
       }
     >
+      <div className="mb-3 px-2 py-1.5 rounded bg-slate-200/60 text-center">
+        <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+          Gallery Cutoff
+        </div>
+        <div className="text-lg font-bold text-slate-800">
+          Seat {cutoff}
+        </div>
+        <div className="text-[10px] text-slate-500">
+          of {activeCase.meta.venireSize} in venire
+        </div>
+      </div>
       <SideColumn
         label="Defense"
         accent="text-emerald-800"
@@ -108,7 +121,7 @@ function SideColumn({
         {entries.map((e, i) => (
           <li
             key={e.jurorId}
-            className="bg-white rounded border border-slate-200 px-2 py-1.5"
+            className="bg-[var(--bg-surface)] rounded border border-[var(--border-default)] px-2 py-1.5"
           >
             <div className="text-xs font-medium">
               {i + 1}. {e.name}
