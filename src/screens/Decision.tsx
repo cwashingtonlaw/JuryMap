@@ -8,12 +8,7 @@ import StrikePicker, { type StrikeChoice } from '../components/StrikePicker';
 import PeremptoryTracker from '../components/PeremptoryTracker';
 import BatsonTallyHeader from '../components/BatsonTallyHeader';
 import EditCaseModal from '../components/EditCaseModal';
-import {
-  markJurorStrike,
-  finishDecisionsForPanel,
-  startNextPanel,
-  getCase,
-} from '../db/repository';
+
 import { calcCutoffSeat } from '../lib/panel';
 import { serializeCase } from '../lib/juryfile';
 import { saveJuryFile } from '../lib/files';
@@ -46,7 +41,7 @@ export default function Decision() {
   async function onSave(status: StrikeChoice, reason: string) {
     if (!caseId || !openJurorId) return;
 
-    if (status !== 'kept' && status !== 'active') {
+    if (status !== 'kept') {
       if (!reason.trim()) {
         alert('A reason is required for every strike or disqualification.');
         return;

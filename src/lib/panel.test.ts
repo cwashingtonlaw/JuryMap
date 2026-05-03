@@ -145,6 +145,7 @@ function makeCase(overrides: {
       venireSize,
       seatLayout: 'rows',
       customFactors: [],
+      aisleAfterColumns: [],
     },
     mode: 'decision',
     currentPanelIndex: 0,

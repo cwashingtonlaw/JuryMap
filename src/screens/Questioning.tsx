@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
-import { advanceToDecision } from '../db/repository';
+
 import SeatGrid, { defaultColumnsFor } from '../components/SeatGrid';
 import JurorDrawer from '../components/JurorDrawer';
 import DisqualifyModal, {
