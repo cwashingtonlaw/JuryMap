@@ -18,6 +18,7 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { serializeCase } from '../lib/juryfile';
 import { saveJuryFile } from '../lib/files';
 import { useFileShortcuts } from '../hooks/useFileShortcuts';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function Questioning() {
   const { caseId } = useParams();
@@ -270,6 +271,7 @@ export default function Questioning() {
           >
             Present
           </button>
+          <ThemeToggle />
           <button
             type="button"
             onClick={() => setIsEditingCase(true)}

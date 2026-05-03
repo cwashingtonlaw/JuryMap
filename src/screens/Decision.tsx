@@ -19,6 +19,7 @@ import { serializeCase } from '../lib/juryfile';
 import { saveJuryFile } from '../lib/files';
 import { useFileShortcuts } from '../hooks/useFileShortcuts';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function Decision() {
   const { caseId } = useParams();
@@ -147,6 +148,7 @@ export default function Decision() {
           >
             Batson Analysis
           </Link>
+          <ThemeToggle />
           <button
             type="button"
             onClick={() => setIsEditingCase(true)}

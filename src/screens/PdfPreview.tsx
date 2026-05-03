@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
 import { useCaseStore } from '../store/caseStore';
 import JuryReportDocument, { type ExportOptions } from '../pdf/JuryReportDocument';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function PdfPreview() {
   const { caseId } = useParams();
@@ -37,13 +38,14 @@ export default function PdfPreview() {
           <h1 className="text-xl font-semibold">{activeCase.meta.name}</h1>
           <div className="text-xs text-slate-500">PDF report preview</div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 items-center">
           <Link
             to={`/cases/${caseId}/seated`}
             className="text-sm text-slate-600 hover:text-slate-900"
           >
             ← Back to Seated Jury
           </Link>
+          <ThemeToggle />
           <button
             onClick={() => setOptionsModalOpen(true)}
             className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"

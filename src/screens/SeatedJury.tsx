@@ -4,6 +4,7 @@ import { useCaseStore } from '../store/caseStore';
 import { seatedJurors } from '../db/repository';
 import type { Juror } from '../types/case';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function SeatedJury() {
   const { caseId } = useParams();
@@ -102,6 +103,7 @@ export default function SeatedJury() {
               ↪️
             </button>
           </div>
+          <ThemeToggle />
           <Link
             to={`/cases/${caseId}/report`}
             className="rounded-md bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"

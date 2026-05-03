@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
 import { ANALOGIES } from '../content/analogies';
 import type { Juror } from '../types/case';
+import ThemeToggle from '../components/ThemeToggle';
 
 // Cross-juror matrix of analogy responses for the whole case.
 // Columns = each analogy's checkpoints (flattened). Rows = jurors.
@@ -158,6 +159,7 @@ function Header({ caseName, caseId }: { caseName: string; caseId: string }) {
         <div className="text-xs text-slate-500">Analogy response report</div>
       </div>
       <div className="flex gap-3 items-center">
+        <ThemeToggle />
         <Link
           to={`/cases/${caseId}/questioning`}
           className="text-sm text-slate-600 hover:text-slate-900"

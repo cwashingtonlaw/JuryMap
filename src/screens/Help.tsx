@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import ThemeToggle from '../components/ThemeToggle';
 
 interface Shortcut {
   keys: string;
@@ -22,12 +23,15 @@ export default function Help() {
     <div className="min-h-full">
       <header className="border-b border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold">Help</h1>
-        <Link
-          to="/cases"
-          className="text-sm text-slate-600 hover:text-slate-900"
-        >
-          ← Back to Cases
-        </Link>
+        <div className="flex gap-3 items-center">
+          <ThemeToggle />
+          <Link
+            to="/cases"
+            className="text-sm text-slate-600 hover:text-slate-900"
+          >
+            ← Back to Cases
+          </Link>
+        </div>
       </header>
 
       <div className="max-w-3xl p-8 grid gap-8">

@@ -6,6 +6,7 @@ import BatsonStrikeLog from '../components/BatsonStrikeLog';
 import ComparatorList from '../components/ComparatorList';
 import BatsonPatternFlagsComponent from '../components/BatsonPatternFlags';
 import { generateBatsonMotionHtml } from '../lib/batson-motion';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function BatsonAnalysis() {
   const { caseId } = useParams();
@@ -57,6 +58,7 @@ export default function BatsonAnalysis() {
           >
             ← Back to Decision
           </Link>
+          <ThemeToggle />
           <button
             type="button"
             onClick={exportMotion}

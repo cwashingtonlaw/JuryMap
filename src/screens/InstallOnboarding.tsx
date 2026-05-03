@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { detectPlatform } from '../lib/platform';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function InstallOnboarding() {
   const p = detectPlatform();
@@ -8,12 +9,15 @@ export default function InstallOnboarding() {
     <div className="min-h-full bg-[var(--bg-body)]">
       <header className="border-b border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold">Install the Jury Selection app</h1>
-        <Link
-          to="/cases"
-          className="text-sm text-slate-600 hover:text-slate-900"
-        >
-          Skip for now
-        </Link>
+        <div className="flex gap-3 items-center">
+          <ThemeToggle />
+          <Link
+            to="/cases"
+            className="text-sm text-slate-600 hover:text-slate-900"
+          >
+            Skip for now
+          </Link>
+        </div>
       </header>
 
       <div className="max-w-2xl mx-auto p-8">

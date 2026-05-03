@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
 import PeremptoryTracker from '../components/PeremptoryTracker';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function PeremptoryTrackerScreen() {
   const { caseId } = useParams();
@@ -21,12 +22,15 @@ export default function PeremptoryTrackerScreen() {
           <h1 className="text-xl font-semibold">{activeCase.meta.name}</h1>
           <div className="text-xs text-slate-500">Peremptory Tracker</div>
         </div>
-        <Link
-          to={`/cases/${caseId}/decision`}
-          className="text-sm text-slate-600 hover:text-slate-900"
-        >
-          ← Back to Decision
-        </Link>
+        <div className="flex gap-3 items-center">
+          <ThemeToggle />
+          <Link
+            to={`/cases/${caseId}/decision`}
+            className="text-sm text-slate-600 hover:text-slate-900"
+          >
+            ← Back to Decision
+          </Link>
+        </div>
       </header>
       <PeremptoryTracker activeCase={activeCase} variant="full" />
     </div>

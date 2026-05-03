@@ -4,6 +4,7 @@ import { createCase, populateFirstPanelFromVenire } from '../db/repository';
 import { DEFAULT_PEREMPTORY_PRESETS, makeCustomFactor } from '../types/case';
 import { parseVenire, type VenireRow } from '../lib/venire-import';
 import VenireImportWizard from '../components/VenireImportWizard';
+import ThemeToggle from '../components/ThemeToggle';
 
 type PresetKey = keyof typeof DEFAULT_PEREMPTORY_PRESETS | 'custom';
 
@@ -83,8 +84,9 @@ export default function CaseSetup() {
 
   return (
     <div className="min-h-full">
-      <header className="border-b border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-4">
+      <header className="border-b border-[var(--border-default)] bg-[var(--bg-surface)] px-8 py-4 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">New Case</h1>
+        <ThemeToggle />
       </header>
 
       <form className="max-w-2xl p-8 grid gap-4" onSubmit={onSubmit}>
