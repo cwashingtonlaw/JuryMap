@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Permissions for the Jury Selection app: native file save/open dialogs and reading/writing .jury files chosen by the user.",
+  "description": "Permissions for the JuryMAP app: native file save/open dialogs and reading/writing .jury files chosen by the user.",
   "windows": [
     "main"
   ],

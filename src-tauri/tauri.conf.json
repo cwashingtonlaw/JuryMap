@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Jury Selection",
+  "productName": "JuryMAP",
   "version": "0.1.0",
   "identifier": "com.danielswashington.juryselection",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Jury Selection",
+        "title": "JuryMAP",
         "width": 1400,
         "height": 900,
         "minWidth": 1024,

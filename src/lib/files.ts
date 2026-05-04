@@ -51,7 +51,7 @@ export async function saveJuryFile(
       const path = await save({
         defaultPath: suggestedName,
         filters: [
-          { name: 'Jury Selection case', extensions: ['jury'] },
+          { name: 'JuryMAP case', extensions: ['jury'] },
           { name: 'JSON', extensions: ['json'] },
         ],
       });
@@ -98,7 +98,7 @@ export async function saveJuryFile(
         suggestedName,
         types: [
           {
-            description: 'Jury Selection case file',
+            description: 'JuryMAP case file',
             accept: { 'application/json': ['.jury'] },
           },
         ],
@@ -142,7 +142,7 @@ export async function openJuryFile(): Promise<string | null> {
       const selected = await open({
         multiple: false,
         filters: [
-          { name: 'Jury Selection case', extensions: ['jury', 'json'] },
+          { name: 'JuryMAP case', extensions: ['jury', 'json'] },
         ],
       });
       if (!selected) return null; // user cancelled
@@ -166,7 +166,7 @@ export async function openJuryFile(): Promise<string | null> {
         multiple: false,
         types: [
           {
-            description: 'Jury Selection case file',
+            description: 'JuryMAP case file',
             accept: { 'application/json': ['.jury', '.json'] },
           },
         ],

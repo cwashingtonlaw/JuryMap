@@ -1,6 +1,6 @@
 {
-  "name": "Jury Selection",
-  "short_name": "Jury",
+  "name": "JuryMAP",
+  "short_name": "JuryMAP",
   "description": "Louisiana criminal voir dire companion",
   "start_url": "/",
   "display": "standalone",
