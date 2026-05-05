@@ -121,8 +121,8 @@ export default function SeatGrid({
           elements.push(<div key={`blank-${i}`} />);
         } else {
           elements.push(
-            <div key={seat} className={isDimmed ? 'opacity-40 transition-opacity' : 'transition-opacity'}>
             <SeatCard
+              key={seat}
               seat={seat}
               juror={bySeat.get(seat)}
               onClick={onSeatClick ? () => onSeatClick(seat) : undefined}
@@ -136,8 +136,8 @@ export default function SeatGrid({
               isDragOver={dragOver === seat}
               beyondCutoff={cutoffSeat != null && seat > cutoffSeat}
               isSelected={selectedSeats?.has(seat)}
+              dimmed={isDimmed}
             />
-            </div>
           );
         }
         // Insert aisle spacer div after this column if needed

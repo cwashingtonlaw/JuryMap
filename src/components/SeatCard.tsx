@@ -25,6 +25,7 @@ interface Props {
   customFactors?: CustomFactor[];
   beyondCutoff?: boolean;         // Seat is beyond the Smart Gallery Cutoff line
   isSelected?: boolean;           // Group Question mode: seat is currently selected
+  dimmed?: boolean;               // Search filter: seat is not in highlighted set
 }
 
 const LEAN_COLOR: Record<number, string> = {
@@ -107,9 +108,10 @@ export default function SeatCard({
   customFactors = [],
   beyondCutoff,
   isSelected,
+  dimmed: searchDimmed,
 }: Props) {
   const badge = juror ? STATUS_BADGE[juror.status] : undefined;
-  const dimmed = juror && juror.status !== 'active' && juror.status !== 'kept';
+  const dimmed = (juror && juror.status !== 'active' && juror.status !== 'kept') || searchDimmed;
   const cutoffDimmed = beyondCutoff && !dimmed;
   const priorityRing =
     showStrikePriority && juror ? PRIORITY_RING[juror.strikePriority] : '';
