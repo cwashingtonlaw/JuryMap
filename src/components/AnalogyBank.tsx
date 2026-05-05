@@ -3,12 +3,11 @@ import { ANALOGIES, TOPIC_LABELS, type Analogy } from '../content/analogies';
 
 interface Props {
   selectedIds: string[];
-  onToggle: (id: string) => void;
   onApply: (ids: string[]) => void;
   onClose: () => void;
 }
 
-export default function AnalogyBank({ selectedIds, onToggle, onApply, onClose }: Props) {
+export default function AnalogyBank({ selectedIds, onApply, onClose }: Props) {
   const [localSelected, setLocalSelected] = useState<Set<string>>(new Set(selectedIds));
 
   function toggle(id: string) {

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { QuestionBankEntry } from '../types/case';
-import { newId } from '../lib/id';
 
 interface Props {
   questions: QuestionBankEntry[];

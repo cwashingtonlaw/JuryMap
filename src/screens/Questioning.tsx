@@ -25,7 +25,6 @@ import AnalogyBank from '../components/AnalogyBank';
 import VenireNamePicker from '../components/VenireNamePicker';
 import VenireImportWizard from '../components/VenireImportWizard';
 import type { VenireRow } from '../lib/venire-import';
-import type { VenireListEntry } from '../types/case';
 import { newId } from '../lib/id';
 
 export default function Questioning() {
@@ -603,7 +602,6 @@ export default function Questioning() {
       {showAnalogyBank && (
         <AnalogyBank
           selectedIds={activeCase.analogyBank ?? []}
-          onToggle={() => {}}
           onApply={async (ids) => {
             await updateCase((draft) => {
               draft.analogyBank = ids;
