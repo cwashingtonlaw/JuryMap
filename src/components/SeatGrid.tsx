@@ -14,6 +14,7 @@ interface Props {
   cutoffSeat?: number;             // Smart Gallery Cutoff: seats beyond this are dimmed
   selectedSeats?: Set<number>;     // Group Question mode: seats currently selected
   aisleAfterColumns?: number[];   // Insert visual spacers after these 1-based column indices
+  highlightedSeats?: Set<number>; // Search filter: only these seats are fully visible
 }
 
 export function defaultColumnsFor(size: number): number {
@@ -37,6 +38,7 @@ export default function SeatGrid({
   cutoffSeat,
   selectedSeats,
   aisleAfterColumns = [],
+  highlightedSeats,
 }: Props) {
   const bySeat = new Map<number, Juror>();
   for (const j of jurors) {
@@ -114,12 +116,13 @@ export default function SeatGrid({
       {seatOrder.map((seat, i) => {
         const colInRow = (i % cols) + 1; // 1-based column position
         const elements: React.ReactNode[] = [];
+        const isDimmed = highlightedSeats != null && highlightedSeats.size > 0 && seat !== 0 && !highlightedSeats.has(seat);
         if (seat === 0) {
           elements.push(<div key={`blank-${i}`} />);
         } else {
           elements.push(
+            <div key={seat} className={isDimmed ? 'opacity-40 transition-opacity' : 'transition-opacity'}>
             <SeatCard
-              key={seat}
               seat={seat}
               juror={bySeat.get(seat)}
               onClick={onSeatClick ? () => onSeatClick(seat) : undefined}
@@ -134,6 +137,7 @@ export default function SeatGrid({
               beyondCutoff={cutoffSeat != null && seat > cutoffSeat}
               isSelected={selectedSeats?.has(seat)}
             />
+            </div>
           );
         }
         // Insert aisle spacer div after this column if needed

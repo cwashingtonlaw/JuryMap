@@ -13,6 +13,7 @@ interface Props {
   onClose: () => void;
   onChange: (mutator: (draft: Juror) => void) => void;
   onDisqualify?: () => void;
+  children?: React.ReactNode;
 }
 
 export default function JurorDrawer({
@@ -22,6 +23,7 @@ export default function JurorDrawer({
   onClose,
   onChange,
   onDisqualify,
+  children,
 }: Props) {
   const [analogyPickerOpen, setAnalogyPickerOpen] = useState(false);
   const [activeAnalogyId, setActiveAnalogyId] = useState<string | null>(null);
@@ -90,6 +92,8 @@ export default function JurorDrawer({
             </button>
           </div>
         )}
+
+        {children}
       </div>
 
       {analogyPickerOpen && (

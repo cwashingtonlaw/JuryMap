@@ -18,6 +18,14 @@ export type Lean = -3 | -2 | -1 | 0 | 1 | 2 | 3;
 
 export type PartyRating = 'red' | 'green' | 'yellow' | 'orange' | 'unrated';
 
+export type NoteParty = 'plaintiff' | 'defendant' | 'plaintiff-defendant-state';
+
+export const NOTE_PARTY_LABELS: Record<NoteParty, string> = {
+  plaintiff: 'Plaintiff',
+  defendant: 'Defendant',
+  'plaintiff-defendant-state': 'Plaintiff, Defendant, and State',
+};
+
 export type StrikePriority = 0 | 1 | 2 | 3 | 4 | 5;
 
 export type ReactionKind = 'behavior' | 'analogy-response';
@@ -117,6 +125,7 @@ export interface Juror {
 
   demeanor?: string;
   notes: string; // markdown-capable free-form
+  noteParty?: NoteParty; // which party context the note relates to
   notesMode?: 'text' | 'drawing'; // which notes tab is active; defaults to 'text'
   drawingData?: string; // serialized SVG path data for freehand ink strokes
   lean: Lean;
@@ -151,6 +160,11 @@ export interface PeremptoryBudget {
   state: number;
 }
 
+export interface QuestionBankEntry {
+  id: string;
+  question: string;
+}
+
 export interface CaseMeta {
   name: string;
   docketNumber?: string;
@@ -177,9 +191,19 @@ export interface Case {
   currentPanelIndex: number; // 0-based into panels[]
   panels: Panel[];
   seatedJurorOrder: string[]; // juror IDs
+  questionBank: QuestionBankEntry[]; // reusable questions
+  analogyBank: string[]; // IDs of selected analogies from the library
+  venireList: VenireListEntry[]; // imported CSV names
   archived: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface VenireListEntry {
+  id: string;
+  name: string; // "LastName, FirstName" format
+  jurorNumber?: string;
+  assigned: boolean; // whether already placed on a seat
 }
 
 export interface CaseIndexRow {

@@ -6,6 +6,7 @@ import {
   StyleSheet,
 } from '@react-pdf/renderer';
 import type { Case, Juror } from '../types/case';
+import { NOTE_PARTY_LABELS } from '../types/case';
 import { batsonTally } from '../lib/batson';
 import {
   RACE_LABELS,
@@ -105,6 +106,25 @@ function getStatusBadgeLabel(status: string) {
   return null;
 }
 
+
+/** Render text with **bold** markers as inline bold spans for react-pdf */
+function FormattedText({ text }: { text: string }) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <Text style={{ flex: 1 }}>
+      {parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return (
+            <Text key={i} style={{ fontWeight: 700 }}>
+              {part.slice(2, -2)}
+            </Text>
+          );
+        }
+        return <Text key={i}>{part}</Text>;
+      })}
+    </Text>
+  );
+}
 
 function jurorDisposition(j: Juror): string {
   switch (j.status) {
@@ -328,9 +348,17 @@ export default function JuryReportDocument({ activeCase, options }: { activeCase
                   </View>
                 )}
                 {options.includeHandwrittenNotes && j.notes && (
-                  <View style={styles.kv}>
-                    <Text style={styles.k}>Notes</Text>
-                    <Text style={styles.v}>{j.notes}</Text>
+                  <View style={{ marginTop: 4 }}>
+                    {j.noteParty && (
+                      <View style={styles.kv}>
+                        <Text style={styles.k}>Party</Text>
+                        <Text style={styles.v}>{NOTE_PARTY_LABELS[j.noteParty]}</Text>
+                      </View>
+                    )}
+                    <View style={styles.kv}>
+                      <Text style={styles.k}>Notes</Text>
+                      <FormattedText text={j.notes} />
+                    </View>
                   </View>
                 )}
                 {j.questionnaire && j.questionnaire.length > 0 && (

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { Juror, Lean, CustomFactor, PartyRating, QuestionnaireEntry } from '../types/case';
+import type { Juror, Lean, CustomFactor, PartyRating, QuestionnaireEntry, NoteParty } from '../types/case';
+import { NOTE_PARTY_LABELS } from '../types/case';
 import { RACE_LABELS, GENDER_LABELS, MARITAL_LABELS } from '../types/demographics';
 import LeanControl from './LeanControl';
 import FlagChips from './FlagChips';
@@ -322,18 +323,33 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
           )}
         </div>
 
+        {/* Party context dropdown */}
+        {!readOnly && (
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-slate-500 whitespace-nowrap">Party:</label>
+            <select
+              title="Note party context"
+              className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-2 py-1 text-sm flex-1"
+              value={juror.noteParty ?? ''}
+              onChange={(e) =>
+                onChange((d) => {
+                  d.noteParty = (e.target.value || undefined) as NoteParty | undefined;
+                })
+              }
+            >
+              <option value="">Select party…</option>
+              {Object.entries(NOTE_PARTY_LABELS).map(([k, v]) => (
+                <option key={k} value={k}>{v}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {(juror.notesMode ?? 'text') === 'text' ? (
-          <textarea
-            rows={6}
-            className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
+          <NotesEditor
             value={juror.notes}
-            disabled={readOnly}
-            onChange={(e) =>
-              onChange((d) => {
-                d.notes = e.target.value;
-              })
-            }
-            placeholder="Demeanor, responses to questions, red flags…"
+            readOnly={readOnly}
+            onChange={(val) => onChange((d) => { d.notes = val; })}
           />
         ) : (
           <DrawingCanvas
@@ -355,6 +371,213 @@ export default function JurorFields({ juror, factors = [], readOnly, onChange }:
         readOnly={readOnly}
         onChange={onChange}
       />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Notes editor with formatting toolbar                               */
+/* ------------------------------------------------------------------ */
+
+function renderMarkdownPreview(text: string): React.ReactNode {
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Bullet list
+    if (line.startsWith('- ')) {
+      const items: string[] = [];
+      while (i < lines.length && lines[i].startsWith('- ')) {
+        items.push(lines[i].slice(2));
+        i++;
+      }
+      elements.push(
+        <ul key={`ul-${i}`} className="list-disc list-inside ml-2 my-1">
+          {items.map((item, idx) => (
+            <li key={idx}>{renderInline(item)}</li>
+          ))}
+        </ul>
+      );
+      continue;
+    }
+
+    // Numbered list
+    if (/^\d+\.\s/.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^\d+\.\s/.test(lines[i])) {
+        items.push(lines[i].replace(/^\d+\.\s/, ''));
+        i++;
+      }
+      elements.push(
+        <ol key={`ol-${i}`} className="list-decimal list-inside ml-2 my-1">
+          {items.map((item, idx) => (
+            <li key={idx}>{renderInline(item)}</li>
+          ))}
+        </ol>
+      );
+      continue;
+    }
+
+    // Empty line
+    if (line.trim() === '') {
+      i++;
+      continue;
+    }
+
+    // Regular paragraph
+    elements.push(<p key={`p-${i}`} className="my-1">{renderInline(line)}</p>);
+    i++;
+  }
+
+  return elements;
+}
+
+function renderInline(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  const regex = /\*\*(.+?)\*\*/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+    parts.push(<strong key={match.index}>{match[1]}</strong>);
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts.length === 1 ? parts[0] : <>{parts}</>;
+}
+
+function NotesEditor({
+  value,
+  readOnly,
+  onChange,
+}: {
+  value: string;
+  readOnly?: boolean;
+  onChange: (val: string) => void;
+}) {
+  const [textareaRef, setTextareaRef] = useState<HTMLTextAreaElement | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  function wrapSelection(prefix: string, suffix: string) {
+    if (!textareaRef) return;
+    const start = textareaRef.selectionStart;
+    const end = textareaRef.selectionEnd;
+    const selected = value.slice(start, end);
+    const before = value.slice(0, start);
+    const after = value.slice(end);
+    const newText = before + prefix + selected + suffix + after;
+    onChange(newText);
+    // Restore cursor after the wrapped text
+    requestAnimationFrame(() => {
+      textareaRef.focus();
+      textareaRef.selectionStart = start + prefix.length;
+      textareaRef.selectionEnd = end + prefix.length;
+    });
+  }
+
+  function insertLinePrefix(prefix: string) {
+    if (!textareaRef) return;
+    const start = textareaRef.selectionStart;
+    const end = textareaRef.selectionEnd;
+    const selected = value.slice(start, end);
+    const lines = selected.split('\n');
+    const prefixed = lines.map((line, i) => {
+      if (prefix === '1. ') return `${i + 1}. ${line}`;
+      return `${prefix}${line}`;
+    });
+    const before = value.slice(0, start);
+    const after = value.slice(end);
+    const newText = before + prefixed.join('\n') + after;
+    onChange(newText);
+  }
+
+  return (
+    <div className="grid gap-1">
+      {!readOnly && (
+        <div className="flex gap-1">
+          <button
+            type="button"
+            onClick={() => wrapSelection('**', '**')}
+            className="px-2 py-0.5 text-xs font-bold rounded border border-[var(--border-default)] hover:bg-slate-100 dark:hover:bg-slate-800"
+            title="Bold"
+          >
+            B
+          </button>
+          <button
+            type="button"
+            onClick={() => insertLinePrefix('- ')}
+            className="px-2 py-0.5 text-xs rounded border border-[var(--border-default)] hover:bg-slate-100 dark:hover:bg-slate-800"
+            title="Bullet list"
+          >
+            &bull; List
+          </button>
+          <button
+            type="button"
+            onClick={() => insertLinePrefix('1. ')}
+            className="px-2 py-0.5 text-xs rounded border border-[var(--border-default)] hover:bg-slate-100 dark:hover:bg-slate-800"
+            title="Numbered list"
+          >
+            1. List
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!textareaRef) return;
+              const now = new Date();
+              const hh = String(now.getHours()).padStart(2, '0');
+              const mm = String(now.getMinutes()).padStart(2, '0');
+              const stamp = `[${hh}:${mm}] `;
+              const start = textareaRef.selectionStart;
+              const before = value.slice(0, start);
+              const after = value.slice(start);
+              onChange(before + stamp + after);
+              requestAnimationFrame(() => {
+                textareaRef.focus();
+                const pos = start + stamp.length;
+                textareaRef.selectionStart = pos;
+                textareaRef.selectionEnd = pos;
+              });
+            }}
+            className="px-2 py-0.5 text-xs rounded border border-[var(--border-default)] hover:bg-slate-100 dark:hover:bg-slate-800"
+            title="Insert timestamp"
+          >
+            Time
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowPreview((p) => !p)}
+            className={`px-2 py-0.5 text-xs rounded border border-[var(--border-default)] hover:bg-slate-100 dark:hover:bg-slate-800 ${showPreview ? 'bg-slate-200 dark:bg-slate-700' : ''}`}
+            title="Toggle preview"
+          >
+            Preview
+          </button>
+        </div>
+      )}
+      {showPreview ? (
+        <div className="prose text-sm rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 min-h-[9rem] overflow-y-auto">
+          {value ? renderMarkdownPreview(value) : <span className="text-slate-400">Nothing to preview</span>}
+        </div>
+      ) : (
+        <textarea
+          ref={setTextareaRef}
+          rows={6}
+          className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2 text-sm"
+          value={value}
+          disabled={readOnly}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Demeanor, responses to questions, red flags…"
+        />
+      )}
     </div>
   );
 }

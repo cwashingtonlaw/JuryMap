@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCaseStore } from '../store/caseStore';
 
@@ -19,6 +19,14 @@ import { serializeCase } from '../lib/juryfile';
 import { saveJuryFile } from '../lib/files';
 import { useFileShortcuts } from '../hooks/useFileShortcuts';
 import ThemeToggle from '../components/ThemeToggle';
+import PanelNav from '../components/PanelNav';
+import QuestionBank from '../components/QuestionBank';
+import AnalogyBank from '../components/AnalogyBank';
+import VenireNamePicker from '../components/VenireNamePicker';
+import VenireImportWizard from '../components/VenireImportWizard';
+import type { VenireRow } from '../lib/venire-import';
+import type { VenireListEntry } from '../types/case';
+import { newId } from '../lib/id';
 
 export default function Questioning() {
   const { caseId } = useParams();
@@ -42,10 +50,30 @@ export default function Questioning() {
   const [groupMode, setGroupMode] = useState(false);
   const [groupQuestion, setGroupQuestion] = useState('');
   const [groupSelectedSeats, setGroupSelectedSeats] = useState<Set<number>>(new Set());
+  const [showQuestionBank, setShowQuestionBank] = useState(false);
+  const [showAnalogyBank, setShowAnalogyBank] = useState(false);
+  const [showVenireImport, setShowVenireImport] = useState(false);
+  const [pendingSeat, setPendingSeat] = useState<number | null>(null);
+  const [searchFilter, setSearchFilter] = useState('');
+
+  // Auto-save indicator
+  const [savedVisible, setSavedVisible] = useState(false);
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevUpdatedAt = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (caseId) loadCase(caseId).catch(console.error);
   }, [caseId, loadCase]);
+
+  useEffect(() => {
+    const updatedAt = activeCase?.updatedAt;
+    if (prevUpdatedAt.current && updatedAt && updatedAt !== prevUpdatedAt.current) {
+      setSavedVisible(true);
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setSavedVisible(false), 2000);
+    }
+    prevUpdatedAt.current = updatedAt;
+  }, [activeCase?.updatedAt]);
 
   const panel = activeCase?.panels[activeCase.currentPanelIndex];
   const selectedJuror =
@@ -230,7 +258,24 @@ export default function Questioning() {
             >
               ↪️
             </button>
+            <span className={`text-xs text-green-600 transition-opacity duration-500 ${savedVisible ? 'opacity-100' : 'opacity-0'}`}>
+              ● Saved
+            </span>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowQuestionBank(true)}
+            className="px-3 py-1.5 text-sm rounded-md font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+          >
+            Question Bank
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowAnalogyBank(true)}
+            className="px-3 py-1.5 text-sm rounded-md font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+          >
+            Analogy Bank
+          </button>
           <button
             type="button"
             title="Group Question / Raise Your Hand (Cmd+G)"
@@ -275,6 +320,48 @@ export default function Questioning() {
           <ThemeToggle />
           <button
             type="button"
+            onClick={() => setShowVenireImport(true)}
+            className="px-3 py-1.5 text-sm rounded-md font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+          >
+            Import Venire
+          </button>
+          <button
+            type="button"
+            disabled={
+              !(activeCase.venireList ?? []).some((e) => !e.assigned) ||
+              !Array.from({ length: activeCase.meta.venireSize }, (_, i) => i + 1).some(
+                (s) => !panel.jurors.find((j) => j.seatIndex === s)
+              )
+            }
+            onClick={async () => {
+              await updateCase((draft) => {
+                const p = draft.panels[draft.currentPanelIndex];
+                const venire = draft.venireList ?? [];
+                let venireIdx = 0;
+                for (let seat = 1; seat <= draft.meta.venireSize; seat++) {
+                  const occupied = p.jurors.some((j: any) => j.seatIndex === seat);
+                  if (occupied) continue;
+                  // Find next unassigned venire entry
+                  while (venireIdx < venire.length && venire[venireIdx].assigned) {
+                    venireIdx++;
+                  }
+                  if (venireIdx >= venire.length) break;
+                  const entry = venire[venireIdx];
+                  const juror = makeEmptyJuror(p.id, seat);
+                  juror.identity.name = entry.name;
+                  if (entry.jurorNumber) juror.identity.jurorNumber = entry.jurorNumber;
+                  p.jurors.push(juror);
+                  entry.assigned = true;
+                  venireIdx++;
+                }
+              });
+            }}
+            className="px-3 py-1.5 text-sm rounded-md font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Fill All Seats
+          </button>
+          <button
+            type="button"
             onClick={() => setIsEditingCase(true)}
             className="p-2 text-slate-500 hover:text-slate-900 transition-colors"
             title="Edit Case Settings"
@@ -311,6 +398,28 @@ export default function Questioning() {
           </button>
         </div>
       </header>
+
+      <PanelNav
+        activeCase={activeCase}
+        caseId={caseId!}
+        currentView="questioning"
+        onSwitchPanel={async (idx) => {
+          await updateCase((draft) => {
+            draft.currentPanelIndex = idx;
+          });
+        }}
+      />
+
+      {/* Search/filter jurors bar */}
+      <div className="px-8 py-1.5 border-b border-[var(--border-default)] bg-[var(--bg-surface)] shrink-0">
+        <input
+          type="text"
+          placeholder="Search jurors by name, number, or notes…"
+          value={searchFilter}
+          onChange={(e) => setSearchFilter(e.target.value)}
+          className="w-64 text-xs border border-[var(--border-default)] rounded px-2 py-1 bg-[var(--bg-surface)] focus:outline-none focus:ring-1 focus:ring-blue-400"
+        />
+      </div>
 
       {/* Group Question ("Raise Your Hand") bar */}
       {groupMode && (
@@ -380,6 +489,21 @@ export default function Questioning() {
             customFactors={activeCase.meta.customFactors}
             aisleAfterColumns={activeCase.meta.aisleAfterColumns}
             selectedSeats={groupMode ? groupSelectedSeats : undefined}
+            highlightedSeats={(() => {
+              const q = searchFilter.trim().toLowerCase();
+              if (!q) return undefined;
+              const matched = new Set<number>();
+              for (const j of panel.jurors) {
+                if (j.seatIndex == null) continue;
+                const name = (j.identity?.name ?? '').toLowerCase();
+                const num = (j.identity?.jurorNumber ?? '').toLowerCase();
+                const notes = (j.notes ?? '').toLowerCase();
+                if (name.includes(q) || num.includes(q) || notes.includes(q)) {
+                  matched.add(j.seatIndex);
+                }
+              }
+              return matched;
+            })()}
           onSeatClick={groupMode
             ? (s) => {
                 // In group mode: toggle seat selection instead of opening drawer
@@ -393,6 +517,11 @@ export default function Questioning() {
             : async (s) => {
                 const existing = panel.jurors.find((j) => j.seatIndex === s);
                 if (!existing) {
+                  const hasVenire = (activeCase.venireList ?? []).some((e) => !e.assigned);
+                  if (hasVenire) {
+                    setPendingSeat(s);
+                    return;
+                  }
                   await updateCase((draft) => {
                     const p = draft.panels[draft.currentPanelIndex];
                     p.jurors.push(makeEmptyJuror(p.id, s));
@@ -439,13 +568,98 @@ export default function Questioning() {
             setIsEditingCase(false);
           }}
           onDelete={async () => {
-            // We need a deleteCase function, but for now we can just archive or 
-            // navigate away if we implement the actual deletion in repository.
-            // For now, let's just use the repo's deleteCase if it exists.
             const { deleteCase } = await import('../db/repository');
             await deleteCase(caseId!);
             nav('/cases');
           }}
+        />
+      )}
+      {showQuestionBank && (
+        <QuestionBank
+          questions={activeCase.questionBank ?? []}
+          onAdd={async (question) => {
+            await updateCase((draft) => {
+              if (!draft.questionBank) draft.questionBank = [];
+              draft.questionBank.push({ id: newId(), question });
+            });
+          }}
+          onRemove={async (id) => {
+            await updateCase((draft) => {
+              draft.questionBank = (draft.questionBank ?? []).filter((q) => q.id !== id);
+            });
+          }}
+          onSelect={(question) => {
+            if (selectedJuror) {
+              patchJuror((d) => {
+                if (!d.questionnaire) d.questionnaire = [];
+                d.questionnaire.push({ question, answer: '' });
+              });
+            }
+            setShowQuestionBank(false);
+          }}
+          onClose={() => setShowQuestionBank(false)}
+        />
+      )}
+      {showAnalogyBank && (
+        <AnalogyBank
+          selectedIds={activeCase.analogyBank ?? []}
+          onToggle={() => {}}
+          onApply={async (ids) => {
+            await updateCase((draft) => {
+              draft.analogyBank = ids;
+            });
+            setShowAnalogyBank(false);
+          }}
+          onClose={() => setShowAnalogyBank(false)}
+        />
+      )}
+      {pendingSeat != null && (
+        <VenireNamePicker
+          venireList={activeCase.venireList ?? []}
+          onSelect={async (entry) => {
+            const seat = pendingSeat;
+            setPendingSeat(null);
+            await updateCase((draft) => {
+              const p = draft.panels[draft.currentPanelIndex];
+              const juror = makeEmptyJuror(p.id, seat);
+              juror.identity.name = entry.name;
+              if (entry.jurorNumber) juror.identity.jurorNumber = entry.jurorNumber;
+              p.jurors.push(juror);
+              // Mark as assigned in venire list
+              const ve = (draft.venireList ?? []).find((v) => v.id === entry.id);
+              if (ve) ve.assigned = true;
+            });
+            setOpenSeat(seat);
+          }}
+          onSkip={async () => {
+            const seat = pendingSeat;
+            setPendingSeat(null);
+            await updateCase((draft) => {
+              const p = draft.panels[draft.currentPanelIndex];
+              p.jurors.push(makeEmptyJuror(p.id, seat));
+            });
+            setOpenSeat(seat);
+          }}
+          onClose={() => setPendingSeat(null)}
+        />
+      )}
+      {showVenireImport && (
+        <VenireImportWizard
+          onImport={async (rows: VenireRow[]) => {
+            await updateCase((draft) => {
+              if (!draft.venireList) draft.venireList = [];
+              for (const row of rows) {
+                draft.venireList.push({
+                  id: newId(),
+                  name: row.name,
+                  jurorNumber: row.jurorNumber,
+                  assigned: false,
+                });
+              }
+            });
+            setShowVenireImport(false);
+          }}
+          onCancel={() => setShowVenireImport(false)}
         />
       )}
     </div>
