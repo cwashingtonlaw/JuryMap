@@ -1,4 +1,14 @@
-# Keep Rust build artifacts outside iCloud Drive so iCloud doesn't try to sync
-# hundreds of thousands of intermediate compilation files.
+# Default target directory. Kept local to the repo (and ignored via
+# src-tauri/.gitignore) so the project works on any developer machine,
+# including Apple Silicon (M1/M2/M3/M4/M5) Macs.
+#
+# If you want to relocate Rust build artifacts outside iCloud Drive (or any
+# other cloud-synced folder), override the target dir per machine via the
+# CARGO_TARGET_DIR environment variable, e.g. in ~/.zshrc:
+#
+#   export CARGO_TARGET_DIR="$HOME/.cache/jury-selection/target"
+#
+# That env var takes precedence over this file, so you don't need to edit
+# anything in the repo.
 [build]
-target-dir = "/Users/greatelephant82/.cache/jury-selection/target"
+target-dir = "target"
