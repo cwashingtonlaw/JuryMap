@@ -13,6 +13,19 @@ The app ships in three runtimes from the same React + TypeScript codebase:
 
 Everything in this repo builds natively on arm64 — no Rosetta required.
 
+### Easy path: one-shot install script
+
+```bash
+git clone --branch claude/apple-silicon-compatibility-P7XK8 \
+  https://github.com/cwashingtonlaw/jurymap.git ~/Developer/jurymap
+bash ~/Developer/jurymap/scripts/install-mac.sh
+```
+
+`scripts/install-mac.sh` installs Homebrew, Xcode CLT, Node, Rust, then
+builds `JuryMAP.app` and offers to copy it into `/Applications`. It's
+idempotent — safe to re-run if anything fails partway. See the manual
+steps below if you'd rather drive each command yourself.
+
 ### 1. Prerequisites
 
 Install via [Homebrew](https://brew.sh) (the native arm64 build):
